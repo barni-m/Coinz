@@ -23,9 +23,11 @@ import android.widget.TextView
 
 import java.util.ArrayList
 import android.Manifest.permission.READ_CONTACTS
+import android.content.Intent
 import android.widget.Button
 
 import kotlinx.android.synthetic.main.activity_login.*
+import uk.ac.ed.inf.coinz.R.id.*
 import uk.ac.ed.inf.coinz.R.string.button
 
 /**
@@ -36,7 +38,6 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
      * Keep track of the login task to ensure we can cancel it if requested.
      */
     private var mAuthTask: UserLoginTask? = null
-
 
 
 
@@ -56,12 +57,18 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
 
         email_sign_in_button.setOnClickListener { attemptLogin() }
 
-
-
-
-
+        buttonAC.setOnClickListener { switchToMap() }
 
     }
+
+    private fun switchToMap() {
+        val intent = Intent(this, MapActivity::class.java)
+        startActivity(intent)
+    }
+
+
+
+
 
     private fun populateAutoComplete() {
         if (!mayRequestContacts()) {
