@@ -23,8 +23,10 @@ import android.widget.TextView
 
 import java.util.ArrayList
 import android.Manifest.permission.READ_CONTACTS
+import android.widget.Button
 
 import kotlinx.android.synthetic.main.activity_login.*
+import uk.ac.ed.inf.coinz.R.string.button
 
 /**
  * A login screen that offers login via email/password.
@@ -34,6 +36,10 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
      * Keep track of the login task to ensure we can cancel it if requested.
      */
     private var mAuthTask: UserLoginTask? = null
+
+
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,6 +55,12 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
         })
 
         email_sign_in_button.setOnClickListener { attemptLogin() }
+
+
+
+
+
+
     }
 
     private fun populateAutoComplete() {
