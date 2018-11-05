@@ -2,6 +2,7 @@ package uk.ac.ed.inf.coinz
 
 import android.annotation.SuppressLint
 import android.location.Location
+import android.os.AsyncTask
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.support.design.widget.Snackbar
@@ -14,6 +15,8 @@ import com.mapbox.android.core.location.LocationEnginePriority
 import com.mapbox.android.core.location.LocationEngineProvider
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
+import com.mapbox.geojson.FeatureCollection
+import com.mapbox.geojson.GeoJson
 import com.mapbox.mapboxsdk.Mapbox
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
 import com.mapbox.mapboxsdk.geometry.LatLng
@@ -24,21 +27,74 @@ import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin
 
 import kotlinx.android.synthetic.main.activity_map.*
+import uk.ac.ed.inf.coinz.MapActivity.DownloadCompleteRunner.result
+import java.io.IOException
+import java.io.InputStream
+import java.net.HttpURLConnection
+import java.net.URL
 
 class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineListener {
 
     private lateinit var mapView: MapView
     private lateinit var map: MapboxMap
     private lateinit var permissionManager: PermissionsManager
-    private lateinit var  originLocation: Location
+    private lateinit var originLocation: Location
+    private var mapUrlString: String = "http://homepages.inf.ed.ac.uk/stg/coinz/2018/01/06/coinzmap.geojson"
+
+
     private var locationEngine: LocationEngine? = null
     private var locationLayerPlugin: LocationLayerPlugin? = null
+
+
+    interface DownloadCompleteListener {
+        fun downloadComplete(result: String)
+    }
+
+    object DownloadCompleteRunner: DownloadCompleteListener {
+        var result : String? = null
+        override fun downloadComplete(result: String) {
+            this.result = result
+        }
+    }
+
+    inner class DownloadFileTask(private val caller: DownloadCompleteListener):
+            AsyncTask<String,Void,String>() {
+
+        override fun doInBackground(vararg urls: String): String = try {
+            loadFileFromNetwork(urls[0])
+        } catch (e: IOException) {
+            "Unable to load content. Check your network connection."
+        }
+
+        private fun loadFileFromNetwork(urlString: String): String {
+            val stream : InputStream = downloadUrl(urlString)
+            return result
+        }
+
+        @Throws(IOException::class)
+        private fun downloadUrl(urlString: String) : InputStream {
+            var url = URL(urlString)
+            var conn = url.openConnection() as HttpURLConnection
+            conn.readTimeout = 10000
+            conn.connectTimeout = 15000
+            conn.requestMethod = "GET"
+            conn.doInput = true
+            conn.connect()
+            return conn.inputStream
+        }
+
+        override fun onPostExecute(result: String) {
+            super.onPostExecute(result)
+
+            caller.downloadComplete(result)
+        }
+    }
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_map)
-
-
 
         Mapbox.getInstance(applicationContext, getString(R.string.access_token))
         mapView = findViewById(R.id.mapView)
@@ -47,6 +103,10 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
             map = mapboxMap
             enableLocation()
         }
+
+        DownloadFileTask(caller = DownloadCompleteRunner).execute(mapUrlString)
+        //coinGeoJson = FeatureCollection.fromJson(/*Geo-JSON Map*/)
+
 
     }
 

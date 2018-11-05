@@ -15,7 +15,7 @@
         android:layout_height="match_parent"
         mapbox:mapbox_cameraTargetLat = "37.7749"
         mapbox:mapbox_cameraTargetLng = "-122.194"
-        mapbox:mapbox_styleUrl="mapbox://styles/b-molnar/cjnkwsbpc4xrd2sp5qvo4zwmt"
+        mapbox:mapbox_styleUrl="mapbox://styles/b-molnar/cjnkwl6fg5gh02so6m8ls8on9"
         mapbox:mapbox_cameraZoom="12"
         />
 
