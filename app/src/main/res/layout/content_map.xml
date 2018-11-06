@@ -17,6 +17,8 @@
         mapbox:mapbox_cameraTargetLng = "-122.194"
         mapbox:mapbox_styleUrl="mapbox://styles/b-molnar/cjnkwl6fg5gh02so6m8ls8on9"
         mapbox:mapbox_cameraZoom="12"
-        />
+        >
+
+    </com.mapbox.mapboxsdk.maps.MapView>
 
 </android.support.constraint.ConstraintLayout>

@@ -1,23 +1,21 @@
 package uk.ac.ed.inf.coinz
 
-import android.annotation.SuppressLint
 import android.location.Location
 import android.os.AsyncTask
 import android.os.Bundle
-import android.os.PersistableBundle
-import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
-import android.view.View
-import android.widget.Button
+import android.util.Log
+import com.google.gson.JsonObject
 import com.mapbox.android.core.location.LocationEngine
 import com.mapbox.android.core.location.LocationEngineListener
 import com.mapbox.android.core.location.LocationEnginePriority
 import com.mapbox.android.core.location.LocationEngineProvider
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
-import com.mapbox.geojson.FeatureCollection
-import com.mapbox.geojson.GeoJson
+import com.mapbox.geojson.*
 import com.mapbox.mapboxsdk.Mapbox
+import com.mapbox.mapboxsdk.annotations.Icon
+import com.mapbox.mapboxsdk.annotations.MarkerOptions
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
 import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.location.modes.CameraMode
@@ -25,25 +23,97 @@ import com.mapbox.mapboxsdk.location.modes.RenderMode
 import com.mapbox.mapboxsdk.maps.MapView
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin
+import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
+import com.mapbox.mapboxsdk.annotations.IconFactory
 
-import kotlinx.android.synthetic.main.activity_map.*
-import uk.ac.ed.inf.coinz.MapActivity.DownloadCompleteRunner.result
 import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.*
+import java.time.LocalDate
 
 class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineListener {
+
+    private val tag = "MapActivity"
 
     private lateinit var mapView: MapView
     private lateinit var map: MapboxMap
     private lateinit var permissionManager: PermissionsManager
     private lateinit var originLocation: Location
-    private var mapUrlString: String = "http://homepages.inf.ed.ac.uk/stg/coinz/2018/01/06/coinzmap.geojson"
 
+    // Downloading and saving GeoJson file
+    private var mapUrlString: String = "http://homepages.inf.ed.ac.uk/stg/coinz/"
+    private val fileName: String = "coinzmap.geojson"
+    private lateinit var geoJsonCoinsString: String
 
     private var locationEngine: LocationEngine? = null
     private var locationLayerPlugin: LocationLayerPlugin? = null
+
+
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_map)
+
+        mapUrlString = createTodaysLink()
+        geoJsonCoinsString = DownloadFileTask(DownloadCompleteRunner).execute(mapUrlString).get()
+
+        Mapbox.getInstance(applicationContext, getString(R.string.access_token))
+        mapView = findViewById(R.id.mapView)
+        mapView.onCreate(savedInstanceState)
+        mapView.getMapAsync(
+            object: OnMapReadyCallback {
+
+            override fun onMapReady(mapboxMap: MapboxMap) {
+
+                map = mapboxMap
+
+                // User interface options
+                map?.uiSettings?.isCompassEnabled = true
+                map?.uiSettings?.isZoomControlsEnabled = true
+
+                // Make location info available:
+                enableLocation()
+
+                val featureCollection: FeatureCollection = FeatureCollection.fromJson(geoJsonCoinsString)
+                val featureList: List<Feature>? = featureCollection.features()
+                if (featureList != null){
+                    for (feature: Feature in featureList){
+                        val icon = IconFactory.getInstance(this@MapActivity)
+                        val icon1 = icon.fromResource(R.drawable.coin)
+
+                        val point: Point = feature.geometry() as Point
+                        val properties: JsonObject? = feature.properties()
+                        mapboxMap.addMarker(MarkerOptions()
+                                .position(LatLng(point.latitude(),point.longitude()))
+                                .icon(icon1)
+                        )
+                    }
+                }else{
+                    mapboxMap.addMarker(MarkerOptions()
+                            .position(LatLng(55.9427,-3.18429))
+                            .title("GeoJson Not Loaded Yet")
+                    )
+                }
+            }
+        })
+
+
+
+
+    }
+
+    private fun createTodaysLink(): String {
+
+        val currentDate: LocalDate = LocalDate.now()
+        val year: Int = currentDate.year
+        val month: Int  = currentDate.monthValue
+        val day: Int = currentDate.dayOfMonth
+
+        return mapUrlString + year + "/" + month + "/0" + day + "/" + fileName
+
+    }
 
 
     interface DownloadCompleteListener {
@@ -68,7 +138,8 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
 
         private fun loadFileFromNetwork(urlString: String): String {
             val stream : InputStream = downloadUrl(urlString)
-            return result
+            // read input stream and close the stream
+            return stream.bufferedReader().use { it.readText() }
         }
 
         @Throws(IOException::class)
@@ -92,26 +163,9 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
 
 
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_map)
-
-        Mapbox.getInstance(applicationContext, getString(R.string.access_token))
-        mapView = findViewById(R.id.mapView)
-        mapView.onCreate(savedInstanceState)
-        mapView.getMapAsync { mapboxMap ->
-            map = mapboxMap
-            enableLocation()
-        }
-
-        DownloadFileTask(caller = DownloadCompleteRunner).execute(mapUrlString)
-        //coinGeoJson = FeatureCollection.fromJson(/*Geo-JSON Map*/)
-
-
-    }
-
     fun enableLocation() {
         if (PermissionsManager.areLocationPermissionsGranted(this)) {
+            Log.d(tag,"Permissions are granted")
             intializeLocationEngine()
             initalizeLocationLayer()
         } else {
@@ -124,8 +178,12 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
     @SuppressWarnings("MissingPermission")
     private fun intializeLocationEngine() {
         locationEngine = LocationEngineProvider(this).obtainBestLocationEngineAvailable()
-        locationEngine?.priority = LocationEnginePriority.HIGH_ACCURACY
-        locationEngine?.activate()
+        locationEngine?.apply {
+            interval = 5000
+            fastestInterval = 1000
+            priority = LocationEnginePriority.HIGH_ACCURACY
+            activate()
+        }
 
         val lastLocation = locationEngine?.lastLocation
         if (lastLocation != null) {
@@ -151,6 +209,7 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
 
 
     override fun onExplanationNeeded(permissionsToExplain: MutableList<String>?) {
+        Log.d(tag,"Permissions:$permissionsToExplain")
         // present toast
     }
 
@@ -175,6 +234,8 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
     override fun onConnected() {
         locationEngine?.requestLocationUpdates()
     }
+
+
 
     @SuppressWarnings("MissingPermission")
     override fun onStart() {
