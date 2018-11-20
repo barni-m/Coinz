@@ -7,12 +7,11 @@
     <uses-permission android:name="android.permission.READ_PROFILE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
 
-    <!-- Map Location Sevice-->
+    <!-- Map Location Sevice -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <!-- Internet Access -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
 
     <application
         android:allowBackup="true"
@@ -24,6 +23,10 @@
         <activity
             android:name=".LoginActivity"
             android:label="@string/title_activity_login"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
+            android:name=".MapActivity"
+            android:label="@string/title_activity_map"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -32,12 +35,9 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MapActivity"
-            android:label="@string/title_activity_map"
-            android:theme="@style/AppTheme.NoActionBar">
-
-        </activity>
-
+            android:name=".LoginSignupActivity"
+            android:label="@string/title_activity_login_signup"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

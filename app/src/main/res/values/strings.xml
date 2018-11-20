@@ -20,4 +20,10 @@
     </string>
     <string name="title_activity_map">MapActivity</string>
     <string name="access_token">pk.eyJ1IjoiYi1tb2xuYXIiLCJhIjoiY2pua285N24zMHVicDN2bDdtcGdwMmg3dCJ9.Ob591D7hqLLQooWWklnS8Q</string>
+    <string name="login">Login/Sign Up</string>
+    <string name="login_signup_form_title">Log In or Create a New Account</string>
+    <string name="title_activity_login_signup">LoginSignupActivity</string>
+    <string name="e_mail">E-mail</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Confirm Password</string>
 </resources>

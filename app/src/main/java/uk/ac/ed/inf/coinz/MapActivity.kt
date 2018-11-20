@@ -1,10 +1,14 @@
 package uk.ac.ed.inf.coinz
 
+import android.content.Intent
 import android.location.Location
 import android.os.AsyncTask
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import android.view.View
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.gson.JsonObject
 import com.mapbox.android.core.location.LocationEngine
 import com.mapbox.android.core.location.LocationEngineListener
@@ -25,6 +29,8 @@ import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
 import com.mapbox.mapboxsdk.annotations.IconFactory
+import kotlinx.android.synthetic.main.activity_login_signup.*
+import kotlinx.android.synthetic.main.activity_map.*
 
 import java.io.IOException
 import java.io.InputStream
@@ -50,12 +56,22 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
     private var locationEngine: LocationEngine? = null
     private var locationLayerPlugin: LocationLayerPlugin? = null
 
+    // User Authentication (Firebase)
+    private var mAuth: FirebaseAuth? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_map)
 
+        // Setting up User Authentication
+        mAuth = FirebaseAuth.getInstance()
+
+        // Login button#
+        buttonLogin.setOnClickListener{ switchToLoginForm() }
+
+
+        // Downloading coins and setting up map with coins:
         mapUrlString = createTodaysLink()
         geoJsonCoinsString = DownloadFileTask(DownloadCompleteRunner).execute(mapUrlString).get()
 
@@ -104,14 +120,55 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
 
     }
 
+
+
+
+
+    @SuppressWarnings("MissingPermission")
+    override fun onStart() {
+        super.onStart()
+        if (PermissionsManager.areLocationPermissionsGranted(this)) {
+            locationEngine?.requestLocationUpdates()
+            locationLayerPlugin?.onStart()
+        }
+        mapView.onStart()
+
+        // Check if user is signed in (non-null) and update UI accordingly.
+        var currentUser: FirebaseUser? = mAuth?.currentUser
+        updateUI(currentUser)
+
+    }
+
+
+    fun updateUI(currentUser: FirebaseUser?){
+        if (currentUser == null){
+            buttonLogin.visibility = View.VISIBLE
+        }
+
+    }
+
+
+    private fun switchToLoginForm(){
+        val intent = Intent(this, LoginSignupActivity::class.java)
+        startActivity(intent)
+    }
+
+
+
+
+
+
     private fun createTodaysLink(): String {
 
         val currentDate: LocalDate = LocalDate.now()
         val year: Int = currentDate.year
         val month: Int  = currentDate.monthValue
         val day: Int = currentDate.dayOfMonth
-
-        return mapUrlString + year + "/" + month + "/0" + day + "/" + fileName
+        val dayString: String = day.toString()
+        if (day <= 9){
+            val dayString: String = "0" + day.toString()
+        }
+        return mapUrlString + year + "/" + month + "/" + dayString + "/" + fileName
 
     }
 
@@ -177,7 +234,8 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
 
     @SuppressWarnings("MissingPermission")
     private fun intializeLocationEngine() {
-        locationEngine = LocationEngineProvider(this).obtainBestLocationEngineAvailable()
+        locationEngine = LocationEngineProvider(this)
+                .obtainBestLocationEngineAvailable()
         locationEngine?.apply {
             interval = 5000
             fastestInterval = 1000
@@ -196,6 +254,13 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
 
     @SuppressWarnings("MissingPermission")
     private fun initalizeLocationLayer() {
+        /*if (mapView == null){Log.d(tag,"mapView is null")}
+        else{
+            if(map == null){Log.d(tag,"map is null")}
+            else{
+
+            }
+        }*/
         locationLayerPlugin = LocationLayerPlugin(mapView, map, locationEngine)
         locationLayerPlugin?.setLocationLayerEnabled(true)
         locationLayerPlugin?.cameraMode = CameraMode.TRACKING_GPS
@@ -236,16 +301,6 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
     }
 
 
-
-    @SuppressWarnings("MissingPermission")
-    override fun onStart() {
-        super.onStart()
-        if (PermissionsManager.areLocationPermissionsGranted(this)) {
-            locationEngine?.requestLocationUpdates()
-            locationLayerPlugin?.onStart()
-        }
-        mapView.onStart()
-    }
 
     override fun onResume() {
         super.onResume()
