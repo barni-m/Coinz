@@ -15,42 +15,69 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="134dp"
+        android:layout_marginTop="50dp"
         app:srcCompat="@drawable/coin" />
 
-    <EditText
-        android:id="@+id/email_box"
+    <TextView
+        android:id="@+id/login_signup_title_view"
         android:layout_width="wrap_content"
-        android:layout_height="30dp"
-        android:layout_below="@id/logo"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/logo"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="15dp"
+        android:text="@string/login_form_title"
+        android:textSize="22sp" />
+
+    <EditText
+        android:id="@+id/email_input_field"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        android:layout_below="@+id/login_signup_title_view"
+        android:layout_centerHorizontal="true"
         android:background="#FFFFFF"
-        android:ems="10"
-        android:inputType="textEmailAddress"
+        android:layout_marginTop="15dp"
         android:drawableLeft="@drawable/ic_action_user"
+        android:ems="10"
         android:hint="@string/e_mail"
+        android:inputType="textEmailAddress"
+        android:text=""
         android:textSize="16dp" />
 
     <EditText
-        android:id="@+id/password_box"
+        android:id="@+id/emai_confirm_input_field"
         android:layout_width="wrap_content"
         android:layout_height="30dp"
-        android:layout_below="@+id/email_box"
+        android:layout_below="@+id/email_input_field"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="15dp"
         android:background="#FFFFFF"
+        android:drawableLeft="@drawable/ic_action_user"
         android:ems="10"
+        android:hint="@string/confirm_e_mail"
+        android:inputType="textEmailAddress"
+        android:text=""
+        android:textSize="16dp"
+        android:visibility="gone" />
+
+    <EditText
+        android:id="@+id/password_input_field"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        android:layout_below="@+id/emai_confirm_input_field"
+        android:layout_centerHorizontal="true"
+        android:background="#FFFFFF"
         android:drawableLeft="@drawable/ic_action_passw"
+        android:layout_marginTop="15dp"
+        android:ems="10"
         android:hint="@string/password"
         android:inputType="textPassword"
         android:textSize="16sp" />
 
     <EditText
-        android:id="@+id/confirm_password_box"
+        android:id="@+id/password_confirm_input_field"
         android:layout_width="wrap_content"
         android:layout_height="30dp"
-        android:layout_below="@+id/password_box"
+        android:layout_below="@+id/password_input_field"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="15dp"
         android:background="#FFFFFF"
@@ -62,24 +89,34 @@
         android:visibility="gone" />
 
     <Button
-        android:id="@+id/login_signup"
+        android:id="@+id/login_signup_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/confirm_password_box"
+        android:layout_below="@+id/password_confirm_input_field"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="25dp"
-        android:text="@string/login" />
+        android:text="@string/login_signup_button_text" />
 
-    <Button
-        android:id="@+id/cancel"
+    <TextView
+        android:id="@+id/no_account_question"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="false"
-        android:layout_alignParentEnd="false"
-        android:layout_alignParentTop="true"
-        android:layout_marginLeft="20dp"
-        android:layout_marginTop="20dp"
-        android:drawableTop="@drawable/ic_action_cancel"
-        android:textSize="0sp" />
+        android:layout_below="@+id/login_signup_button"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="15dp"
+        android:text="@string/no_account_text" />
+
+    <Button
+        android:id="@+id/sign_up_link"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/no_account_question"
+        android:layout_centerHorizontal="true"
+        android:background="@android:color/transparent"
+        android:minHeight="0dp"
+        android:text="@string/sign_up"
+        android:textAppearance="@android:style/TextAppearance.Material.Small"
+        android:textSize="16sp" />
+
 
 </RelativeLayout>

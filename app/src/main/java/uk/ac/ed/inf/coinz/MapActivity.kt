@@ -1,5 +1,7 @@
 package uk.ac.ed.inf.coinz
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.location.Location
 import android.os.AsyncTask
@@ -7,9 +9,12 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
+import android.widget.EditText
+import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.gson.JsonObject
+import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import com.mapbox.android.core.location.LocationEngine
 import com.mapbox.android.core.location.LocationEngineListener
 import com.mapbox.android.core.location.LocationEnginePriority
@@ -57,7 +62,7 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
     private var locationLayerPlugin: LocationLayerPlugin? = null
 
     // User Authentication (Firebase)
-    private var mAuth: FirebaseAuth? = null
+    private lateinit var mAuth: FirebaseAuth
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,8 +72,14 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
         // Setting up User Authentication
         mAuth = FirebaseAuth.getInstance()
 
-        // Login button#
-        buttonLogin.setOnClickListener{ switchToLoginForm() }
+        // Login button
+        //buttonLogin.setOnClickListener{ switchToLoginForm() }
+        // Logout button
+        logout_button.setOnClickListener {it ->
+            mAuth.signOut()
+            it.visibility = View.GONE
+            switchToLoginForm()
+        }
 
 
         // Downloading coins and setting up map with coins:
@@ -81,13 +92,14 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
         mapView.getMapAsync(
             object: OnMapReadyCallback {
 
+            @SuppressLint("MissingPermission")
             override fun onMapReady(mapboxMap: MapboxMap) {
 
                 map = mapboxMap
 
                 // User interface options
-                map?.uiSettings?.isCompassEnabled = true
-                map?.uiSettings?.isZoomControlsEnabled = true
+                map.uiSettings.isCompassEnabled = true
+                map.uiSettings.isZoomControlsEnabled = true
 
                 // Make location info available:
                 enableLocation()
@@ -101,25 +113,45 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
 
                         val point: Point = feature.geometry() as Point
                         val properties: JsonObject? = feature.properties()
+                        val coinID =properties?.get("id").toString()
                         mapboxMap.addMarker(MarkerOptions()
                                 .position(LatLng(point.latitude(),point.longitude()))
                                 .icon(icon1)
+                                .title(coinID)
                         )
                     }
                 }else{
-                    mapboxMap.addMarker(MarkerOptions()
-                            .position(LatLng(55.9427,-3.18429))
-                            .title("GeoJson Not Loaded Yet")
-                    )
+                    // If coins are not available, display a message to the user.
+                    Toast.makeText(this@MapActivity, "Coins not available.",
+                            Toast.LENGTH_SHORT).show()
                 }
+
+
+
+                map.setOnMarkerClickListener { marker ->
+                    if (locationEngine != null){
+                        val lastLocation= locationEngine!!.lastLocation
+                        val lastLocationLatLng: LatLng = LatLng(lastLocation.latitude,lastLocation.longitude)
+                        val markerLatLng = marker.position
+                        val distanceToMarker = lastLocationLatLng.distanceTo(markerLatLng)
+                        // Show a toast with the title of the selected marker
+                        Toast.makeText(this@MapActivity,distanceToMarker.toString() , Toast.LENGTH_LONG).show()
+                        /* @TODO: Coin collection */
+                        if (distanceToMarker < 25.0){
+                            val a = marker.title
+                            Toast.makeText(this@MapActivity,a , Toast.LENGTH_LONG).show()
+                        }
+
+                    }
+                    true
+
+                }
+
             }
         })
 
 
-
-
     }
-
 
 
 
@@ -134,17 +166,19 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
         mapView.onStart()
 
         // Check if user is signed in (non-null) and update UI accordingly.
-        var currentUser: FirebaseUser? = mAuth?.currentUser
+        var currentUser: FirebaseUser? = mAuth.currentUser
         updateUI(currentUser)
 
     }
 
 
+
+
     fun updateUI(currentUser: FirebaseUser?){
         if (currentUser == null){
-            buttonLogin.visibility = View.VISIBLE
+            val intent = Intent(this, LoginSignupActivity::class.java)
+            startActivity(intent)
         }
-
     }
 
 
@@ -152,6 +186,7 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
         val intent = Intent(this, LoginSignupActivity::class.java)
         startActivity(intent)
     }
+
 
 
 
@@ -269,7 +304,7 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
 
     private fun setCameraPosition(location: Location) {
         map.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                LatLng(location.latitude, location.longitude),25.0))
+                LatLng(location.latitude, location.longitude),55.0))
     }
 
 
