@@ -4,18 +4,14 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
 import android.widget.Toast
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.android.synthetic.main.activity_login.*
 
 import kotlinx.android.synthetic.main.activity_login_signup.*
-import java.util.*
+import kotlin.collections.HashMap
 
 
 class LoginSignupActivity : AppCompatActivity() {
@@ -39,13 +35,43 @@ class LoginSignupActivity : AppCompatActivity() {
             val password= password_input_field.text.toString()
             val confirmEmail = emai_confirm_input_field.text.toString()
             val confirmPassword = password_confirm_input_field.text.toString()
+            if (email != "" || password != ""){
+                if (isLogin == false){
+                    if (email == confirmEmail && password == confirmPassword){
+                        // Sign up if emails and passwords match
+                        mAuth.createUserWithEmailAndPassword(email, password)
+                                .addOnCompleteListener(this, OnCompleteListener<AuthResult> {  task ->
+                                    if (task.isSuccessful) {
+                                        // Sign in success, update UI with the signed-in user's information
+                                        // Add new user to database "users" (in Firestore)
+                                        registerNewUser(email)
+                                        val intent = Intent(this, MapActivity::class.java)
+                                        startActivity(intent)
+                                    }else{
+                                        // If sign in fails, display a message to the user.
+                                        Toast.makeText(this, "Authentication failed.",
+                                                Toast.LENGTH_SHORT).show()
+                                    }
+                                })
+                    }else{
+                        if(email != confirmEmail){
+                            // If emails don't match Toast
+                            Toast.makeText(this, "The e-mails don't match.",
+                                    Toast.LENGTH_SHORT).show()
+                        }else{
+                            // If passwords don't match Toast
+                            Toast.makeText(this, "The passwords don't match.",
+                                    Toast.LENGTH_SHORT).show()
+                        }
 
-            if (isLogin == false){
-                if (email == confirmEmail && password == confirmPassword){
-                    // Sign up if emails and passwords match
-                    mAuth.createUserWithEmailAndPassword(email, password)
-                            .addOnCompleteListener(this, OnCompleteListener<AuthResult> {  task ->
-                                if (task.isSuccessful) {
+                    }
+
+
+                }else{
+                    // Login
+                    mAuth.signInWithEmailAndPassword(email,password)
+                            .addOnCompleteListener(this, OnCompleteListener<AuthResult> { task ->
+                                if(task.isSuccessful){
                                     // Sign in success, update UI with the signed-in user's information
                                     val intent = Intent(this, MapActivity::class.java)
                                     startActivity(intent)
@@ -55,34 +81,12 @@ class LoginSignupActivity : AppCompatActivity() {
                                             Toast.LENGTH_SHORT).show()
                                 }
                             })
-                }else{
-                    if(email != confirmEmail){
-                        // If emails don't match Toast
-                        Toast.makeText(this, "The e-mails don't match.",
-                                Toast.LENGTH_SHORT).show()
-                    }else{
-                        // If passwords don't match Toast
-                        Toast.makeText(this, "The passwords don't match.",
-                                Toast.LENGTH_SHORT).show()
-                    }
-
                 }
-
             }else{
-                // Login
-                mAuth.signInWithEmailAndPassword(email,password)
-                        .addOnCompleteListener(this, OnCompleteListener<AuthResult> { task ->
-                            if(task.isSuccessful){
-                                // Sign in success, update UI with the signed-in user's information
-                                val intent = Intent(this, MapActivity::class.java)
-                                startActivity(intent)
-                            }else{
-                                // If sign in fails, display a message to the user.
-                                Toast.makeText(this, "Authentication failed.",
-                                        Toast.LENGTH_SHORT).show()
-                            }
-                        })
+                Toast.makeText(this, "Email or password empty.",
+                        Toast.LENGTH_SHORT).show()
             }
+
         }
 
 
@@ -115,6 +119,16 @@ class LoginSignupActivity : AppCompatActivity() {
             isLogin = true
         }
 
+    }
+
+
+
+    private fun registerNewUser(email: String) {
+        val registered = HashMap<String,Any>()
+        registered["registered"] = true
+        db = FirebaseFirestore.getInstance()
+        val userReference = db.collection("users").document(email)
+        userReference.set(registered)
     }
 
 

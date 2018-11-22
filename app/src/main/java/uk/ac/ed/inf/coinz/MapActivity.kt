@@ -1,20 +1,19 @@
 package uk.ac.ed.inf.coinz
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.content.Intent
 import android.location.Location
 import android.os.AsyncTask
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import android.view.View
-import android.widget.EditText
 import android.widget.Toast
+import com.google.android.gms.tasks.Tasks
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.*
 import com.google.gson.JsonObject
-import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import com.mapbox.android.core.location.LocationEngine
 import com.mapbox.android.core.location.LocationEngineListener
 import com.mapbox.android.core.location.LocationEnginePriority
@@ -23,7 +22,6 @@ import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.geojson.*
 import com.mapbox.mapboxsdk.Mapbox
-import com.mapbox.mapboxsdk.annotations.Icon
 import com.mapbox.mapboxsdk.annotations.MarkerOptions
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
 import com.mapbox.mapboxsdk.geometry.LatLng
@@ -34,15 +32,18 @@ import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
 import com.mapbox.mapboxsdk.annotations.IconFactory
-import kotlinx.android.synthetic.main.activity_login_signup.*
 import kotlinx.android.synthetic.main.activity_map.*
+import org.joda.time.DateTime
 
 import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.text.SimpleDateFormat
 import java.util.*
 import java.time.LocalDate
+import kotlin.collections.HashMap
+import kotlin.concurrent.schedule
 
 class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineListener {
 
@@ -61,23 +62,46 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
     private var locationEngine: LocationEngine? = null
     private var locationLayerPlugin: LocationLayerPlugin? = null
 
-    // User Authentication (Firebase)
+    // Firebase:
+    // User Authentication
     private lateinit var mAuth: FirebaseAuth
+    private var email: String? = null
+    // Database (Firestore)
+    private lateinit var db: FirebaseFirestore
+    // User
+    private var currentUser: FirebaseUser?= null
+    private lateinit var  userDB: DocumentReference
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_map)
 
-        // Setting up User Authentication
+        // Initialising User Authentication
         mAuth = FirebaseAuth.getInstance()
+        // Initialising User
+        currentUser = mAuth.currentUser
+        // Initialising User Database
+        db = FirebaseFirestore.getInstance()
+        email = currentUser?.email
+        if (email != null){
+            userDB = db.collection("users").document(email!!)
+        }
 
-        // Login button
-        //buttonLogin.setOnClickListener{ switchToLoginForm() }
-        // Logout button
+        // Delete coins in wallet from yesterday:
+        deleteOldCoinsInWallet()
+        // In case user plays through midnight delete coins
+        val tomorrowDate = DateTime(Date()).plusDays(1).toLocalDate().toDate()
+        Timer("SettingUp", false).schedule(tomorrowDate) {
+            deleteOldCoinsInWallet()
+        }
+
+
+
+        // Logout button:
         logout_button.setOnClickListener {it ->
             mAuth.signOut()
-            it.visibility = View.GONE
+            //it.visibility = View.GONE
             switchToLoginForm()
         }
 
@@ -104,47 +128,72 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
                 // Make location info available:
                 enableLocation()
 
-                val featureCollection: FeatureCollection = FeatureCollection.fromJson(geoJsonCoinsString)
-                val featureList: List<Feature>? = featureCollection.features()
-                if (featureList != null){
-                    for (feature: Feature in featureList){
-                        val icon = IconFactory.getInstance(this@MapActivity)
-                        val icon1 = icon.fromResource(R.drawable.coin)
+                val collectedCoinsRef = userDB.collection("wallet").document("todaysCollectedCoins")
+                collectedCoinsRef.get().addOnCompleteListener {
+                    val mapOfCollectedCoins = it.result?.data as HashMap<String, HashMap<String, Any>>
+                    val collectedIds= mapOfCollectedCoins.keys
+                    val featureCollection: FeatureCollection = FeatureCollection.fromJson(geoJsonCoinsString)
+                    val featureList: List<Feature>? = featureCollection.features()
+                    if (featureList != null){
+                        for (feature: Feature in featureList){
 
-                        val point: Point = feature.geometry() as Point
-                        val properties: JsonObject? = feature.properties()
-                        val coinID =properties?.get("id").toString()
-                        mapboxMap.addMarker(MarkerOptions()
-                                .position(LatLng(point.latitude(),point.longitude()))
-                                .icon(icon1)
-                                .title(coinID)
-                        )
-                    }
-                }else{
-                    // If coins are not available, display a message to the user.
-                    Toast.makeText(this@MapActivity, "Coins not available.",
-                            Toast.LENGTH_SHORT).show()
-                }
+                            val icon = IconFactory.getInstance(this@MapActivity)
+                            val icon1 = icon.fromResource(R.drawable.coin)
 
-
-
-                map.setOnMarkerClickListener { marker ->
-                    if (locationEngine != null){
-                        val lastLocation= locationEngine!!.lastLocation
-                        val lastLocationLatLng: LatLng = LatLng(lastLocation.latitude,lastLocation.longitude)
-                        val markerLatLng = marker.position
-                        val distanceToMarker = lastLocationLatLng.distanceTo(markerLatLng)
-                        // Show a toast with the title of the selected marker
-                        Toast.makeText(this@MapActivity,distanceToMarker.toString() , Toast.LENGTH_LONG).show()
-                        /* @TODO: Coin collection */
-                        if (distanceToMarker < 25.0){
-                            val a = marker.title
-                            Toast.makeText(this@MapActivity,a , Toast.LENGTH_LONG).show()
+                            val point: Point = feature.geometry() as Point
+                            val properties: JsonObject? = feature.properties()
+                            val coinID =properties?.get("id")?.asString
+                            if (coinID !in collectedIds) {
+                                mapboxMap.addMarker(MarkerOptions()
+                                        .position(LatLng(point.latitude(), point.longitude()))
+                                        .icon(icon1)
+                                        .title(coinID)
+                                )
+                            }
                         }
+                    }else{
+                        // If coins are not available, display a message to the user.
+                        Toast.makeText(this@MapActivity, "Coins not available.",
+                                Toast.LENGTH_SHORT).show()
+                    }
+
+
+
+                    map.setOnMarkerClickListener { marker ->
+                        if (locationEngine != null){
+                            val lastLocation= locationEngine!!.lastLocation
+                            val lastLocationLatLng: LatLng = LatLng(lastLocation.latitude,lastLocation.longitude)
+                            val markerLatLng = marker.position
+                            val distanceToMarker = lastLocationLatLng.distanceTo(markerLatLng)
+                            // Show a toast with the distance to the selected marker
+                            Toast.makeText(this@MapActivity,distanceToMarker.toString() , Toast.LENGTH_LONG).show()
+
+                            if (distanceToMarker < 25.0){
+                                val id = marker.title
+                                //Toast.makeText(this@MapActivity,id , Toast.LENGTH_LONG).show()
+                                if (featureList != null) {
+                                    for (feature: Feature in featureList) {
+                                        if (feature.properties()?.get("id")?.asString ==  id){
+                                            marker.remove()
+                                            val coinValue = feature.properties()!!.get("value").asDouble
+                                            val coinCurrency= feature.properties()!!.get("currency").asString
+                                            //Toast.makeText(this@MapActivity,id + " " + coinValue+ " "+ coinCurrency, Toast.LENGTH_LONG).show()
+                                            val coin = HashMap<String,Any>()
+                                            coin[coinCurrency] = coinValue
+                                            val date = Date()
+                                            val dateTimestamp = Timestamp(date)
+                                            coin["date"] = dateTimestamp
+                                            updateWallet(coin, id)
+                                        }
+
+                                    }
+                                }
+                            }
+
+                        }
+                        true
 
                     }
-                    true
-
                 }
 
             }
@@ -166,7 +215,6 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
         mapView.onStart()
 
         // Check if user is signed in (non-null) and update UI accordingly.
-        var currentUser: FirebaseUser? = mAuth.currentUser
         updateUI(currentUser)
 
     }
@@ -180,6 +228,50 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
             startActivity(intent)
         }
     }
+
+
+    private fun updateWallet(coin: HashMap<String,Any>, id: String){
+        //val coinMapEntries = coin.entries.iterator().next()
+        //val currency = coinMapEntries.key
+
+
+        val idToCoinMap =  HashMap<String,Any>()
+        idToCoinMap[id]=coin
+
+
+        val document= userDB.collection("wallet")
+                .document("todaysCollectedCoins").set(idToCoinMap, SetOptions.merge())
+
+
+        //val docres = document.result?.getDouble(currency)
+        //userDB.collection("bank").document("currencies").set(coin)
+
+    }
+
+    private fun deleteOldCoinsInWallet(){
+        val collectedCoinsRef = userDB.collection("wallet").document("todaysCollectedCoins")
+        collectedCoinsRef.get().addOnCompleteListener{ it
+            val mapOfCollectedCoins = it.result?.data as HashMap<String, HashMap<String,Any>>
+            for ((id, coin) in mapOfCollectedCoins) {
+                val coinDate: Date = coin.get("date") as Date
+                val formatter = SimpleDateFormat("yyyy/MM/dd")
+                val todayString = formatter.format(Date())
+                val todayDate = formatter.parse(todayString)
+                val p = 9
+                if (coinDate < todayDate){
+                    val deleteCoin =  HashMap<String,Any>()
+                    deleteCoin[id] = FieldValue.delete()
+                    collectedCoinsRef.update(deleteCoin)
+                }
+            val ere = 0
+
+            }
+
+        }.addOnFailureListener {
+            Toast.makeText(this,"Failed to delete old coins.", Toast.LENGTH_LONG).show()
+        }
+    }
+
 
 
     private fun switchToLoginForm(){
@@ -298,7 +390,7 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
         }*/
         locationLayerPlugin = LocationLayerPlugin(mapView, map, locationEngine)
         locationLayerPlugin?.setLocationLayerEnabled(true)
-        locationLayerPlugin?.cameraMode = CameraMode.TRACKING_GPS
+        locationLayerPlugin?.cameraMode = CameraMode.TRACKING
         locationLayerPlugin?.renderMode = RenderMode.NORMAL
     }
 

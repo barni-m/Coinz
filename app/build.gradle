@@ -48,6 +48,9 @@ dependencies {
     implementation 'android.arch.core:runtime:1.1.1'
     implementation 'android.arch.core:common:1.1.1'
 
+    // Joda-Time
+    implementation 'joda-time:joda-time:2.9.4'
+
 }
 
 apply plugin: 'com.google.gms.google-services'
