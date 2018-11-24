@@ -35,7 +35,7 @@ class LoginSignupActivity : AppCompatActivity() {
             val password= password_input_field.text.toString()
             val confirmEmail = emai_confirm_input_field.text.toString()
             val confirmPassword = password_confirm_input_field.text.toString()
-            if (email != "" || password != ""){
+            if ((email != "" && password != "")){
                 if (isLogin == false){
                     if (email == confirmEmail && password == confirmPassword){
                         // Sign up if emails and passwords match
@@ -47,12 +47,15 @@ class LoginSignupActivity : AppCompatActivity() {
                                         registerNewUser(email)
                                         val intent = Intent(this, MapActivity::class.java)
                                         startActivity(intent)
-                                    }else{
+                                    }/*else{
                                         // If sign in fails, display a message to the user.
                                         Toast.makeText(this, "Authentication failed.",
                                                 Toast.LENGTH_SHORT).show()
-                                    }
-                                })
+                                    }*/
+                                }).addOnFailureListener {
+                                    Toast.makeText(this, "${it.message}",
+                                            Toast.LENGTH_SHORT).show()
+                                }
                     }else{
                         if(email != confirmEmail){
                             // If emails don't match Toast
@@ -75,12 +78,15 @@ class LoginSignupActivity : AppCompatActivity() {
                                     // Sign in success, update UI with the signed-in user's information
                                     val intent = Intent(this, MapActivity::class.java)
                                     startActivity(intent)
-                                }else{
+                                }/*else{
                                     // If sign in fails, display a message to the user.
                                     Toast.makeText(this, "Authentication failed.",
                                             Toast.LENGTH_SHORT).show()
-                                }
-                            })
+                                }*/
+                            }).addOnFailureListener {
+                                Toast.makeText(this, "${it.message}",
+                                        Toast.LENGTH_SHORT).show()
+                            }
                 }
             }else{
                 Toast.makeText(this, "Email or password empty.",

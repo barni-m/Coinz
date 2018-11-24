@@ -72,6 +72,9 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
     private var currentUser: FirebaseUser?= null
     private lateinit var  userDB: DocumentReference
 
+    // Required proximity of marker
+    private var requiredMarkerDistance = 25.0
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,14 +90,16 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
         if (email != null){
             userDB = db.collection("users").document(email!!)
         }
-
-        // Delete coins in wallet from yesterday:
-        deleteOldCoinsInWallet()
-        // In case user plays through midnight delete coins
-        val tomorrowDate = DateTime(Date()).plusDays(1).toLocalDate().toDate()
-        Timer("SettingUp", false).schedule(tomorrowDate) {
+        if (currentUser != null){
+            /* Delete coins in wallet from yesterday and
+            set task to delete coins from wallet if user plays overnight
+            and recursively set task for next day:*/
             deleteOldCoinsInWallet()
+
+        }else{
+            updateUIIfNoUserLoggedIn()
         }
+
 
 
 
@@ -161,14 +166,15 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
 
                     map.setOnMarkerClickListener { marker ->
                         if (locationEngine != null){
+                            // calculating distance to marker
                             val lastLocation= locationEngine!!.lastLocation
                             val lastLocationLatLng: LatLng = LatLng(lastLocation.latitude,lastLocation.longitude)
                             val markerLatLng = marker.position
                             val distanceToMarker = lastLocationLatLng.distanceTo(markerLatLng)
                             // Show a toast with the distance to the selected marker
-                            Toast.makeText(this@MapActivity,distanceToMarker.toString() , Toast.LENGTH_LONG).show()
+                            //Toast.makeText(this@MapActivity,distanceToMarker.toString() , Toast.LENGTH_LONG).show()
 
-                            if (distanceToMarker < 25.0){
+                            if (distanceToMarker < requiredMarkerDistance){
                                 val id = marker.title
                                 //Toast.makeText(this@MapActivity,id , Toast.LENGTH_LONG).show()
                                 if (featureList != null) {
@@ -177,7 +183,7 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
                                             marker.remove()
                                             val coinValue = feature.properties()!!.get("value").asDouble
                                             val coinCurrency= feature.properties()!!.get("currency").asString
-                                            //Toast.makeText(this@MapActivity,id + " " + coinValue+ " "+ coinCurrency, Toast.LENGTH_LONG).show()
+                                            Toast.makeText(this@MapActivity,"Distance: %.0fm\nAdded to wallet.".format(distanceToMarker) , Toast.LENGTH_LONG).show()
                                             val coin = HashMap<String,Any>()
                                             coin[coinCurrency] = coinValue
                                             val date = Date()
@@ -188,6 +194,8 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
 
                                     }
                                 }
+                            }else{
+                                Toast.makeText(this@MapActivity,"Distance: %.0fm\nToo far away to collect.".format(distanceToMarker) , Toast.LENGTH_LONG).show()
                             }
 
                         }
@@ -214,19 +222,16 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
         }
         mapView.onStart()
 
-        // Check if user is signed in (non-null) and update UI accordingly.
-        updateUI(currentUser)
+
 
     }
 
 
 
 
-    fun updateUI(currentUser: FirebaseUser?){
-        if (currentUser == null){
-            val intent = Intent(this, LoginSignupActivity::class.java)
-            startActivity(intent)
-        }
+    private fun updateUIIfNoUserLoggedIn(){
+        val intent = Intent(this, LoginSignupActivity::class.java)
+        startActivity(intent)
     }
 
 
@@ -248,27 +253,34 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
 
     }
 
+
     private fun deleteOldCoinsInWallet(){
         val collectedCoinsRef = userDB.collection("wallet").document("todaysCollectedCoins")
-        collectedCoinsRef.get().addOnCompleteListener{ it
+        collectedCoinsRef.get().addOnCompleteListener{
             val mapOfCollectedCoins = it.result?.data as HashMap<String, HashMap<String,Any>>
             for ((id, coin) in mapOfCollectedCoins) {
                 val coinDate: Date = coin.get("date") as Date
                 val formatter = SimpleDateFormat("yyyy/MM/dd")
                 val todayString = formatter.format(Date())
                 val todayDate = formatter.parse(todayString)
-                val p = 9
+
                 if (coinDate < todayDate){
                     val deleteCoin =  HashMap<String,Any>()
                     deleteCoin[id] = FieldValue.delete()
                     collectedCoinsRef.update(deleteCoin)
                 }
-            val ere = 0
+
 
             }
 
         }.addOnFailureListener {
-            Toast.makeText(this,"Failed to delete old coins.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this,"ERROR: Failed to delete old coins.", Toast.LENGTH_LONG).show()
+        }
+
+        // In case user plays through midnight delete coins
+        val tomorrowDate = DateTime(Date()).plusDays(1).toLocalDate().toDate()
+        Timer("SettingUp", false).schedule(tomorrowDate) {
+            deleteOldCoinsInWallet()
         }
     }
 
