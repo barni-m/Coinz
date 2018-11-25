@@ -8,7 +8,6 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.Toast
-import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -103,11 +102,17 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
 
 
 
-        // Logout button:
-        logout_button.setOnClickListener {it ->
-            mAuth.signOut()
-            //it.visibility = View.GONE
-            switchToLoginForm()
+        // Switch to Menu button:
+        menu_button.setOnClickListener { it ->
+            val intent = Intent(this, BottomNavigationActivity::class.java)
+            startActivity(intent)
+            overridePendingTransition(R.anim.slide_in_left,R.anim.slide_out_right)
+        }
+        // in case of imprecise touch
+        menu_button_container.setOnClickListener { it ->
+            val intent = Intent(this, BottomNavigationActivity::class.java)
+            startActivity(intent)
+            overridePendingTransition(R.anim.slide_in_left,R.anim.slide_out_right)
         }
 
 
@@ -136,18 +141,23 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
                 val collectedCoinsRef = userDB.collection("wallet").document("todaysCollectedCoins")
                 collectedCoinsRef.get().addOnCompleteListener {
                     val mapOfCollectedCoins = it.result?.data as HashMap<String, HashMap<String, Any>>
-                    val collectedIds= mapOfCollectedCoins.keys
+                    val collectedIds = mapOfCollectedCoins.keys
+
                     val featureCollection: FeatureCollection = FeatureCollection.fromJson(geoJsonCoinsString)
                     val featureList: List<Feature>? = featureCollection.features()
-                    if (featureList != null){
-                        for (feature: Feature in featureList){
+                    if (featureList != null) {
+                        for (feature: Feature in featureList) {
 
-                            val icon = IconFactory.getInstance(this@MapActivity)
-                            val icon1 = icon.fromResource(R.drawable.coin)
+
 
                             val point: Point = feature.geometry() as Point
                             val properties: JsonObject? = feature.properties()
-                            val coinID =properties?.get("id")?.asString
+                            val coinID = properties?.get("id")?.asString
+                            val coinCurrency = properties?.get("currency")?.asString
+                            val iconName = "coin_" + coinCurrency?.toLowerCase()
+                            val iconResource =resources.getIdentifier(iconName,"drawable",packageName)
+                            val icon1 = IconFactory.getInstance(this@MapActivity).fromResource(iconResource)
+
                             if (coinID !in collectedIds) {
                                 mapboxMap.addMarker(MarkerOptions()
                                         .position(LatLng(point.latitude(), point.longitude()))
@@ -286,10 +296,7 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
 
 
 
-    private fun switchToLoginForm(){
-        val intent = Intent(this, LoginSignupActivity::class.java)
-        startActivity(intent)
-    }
+
 
 
 
@@ -471,7 +478,10 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
         }
     }
 
-
+    override fun finish() {
+        super.finish()
+        overridePendingTransition(R.anim.slide_in_left,R.anim.slide_out_right)
+    }
 
 
 }

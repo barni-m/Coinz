@@ -36,4 +36,11 @@
     <string name="login_layout_link">Login instead.</string>
     <!--end of login signup texts-->
 
+    <string name="wallet_bank_title">Coinz Wallet</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="wallet">Wallet</string>
+    <string name="store">Store</string>
+    <string name="bank">Bank</string>
+
+
 </resources>
