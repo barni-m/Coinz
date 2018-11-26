@@ -36,9 +36,9 @@
             android:label="@string/title_activity_login_signup"
             android:theme="@style/AppTheme.NoActionBar" />
 
-        <activity android:name=".BottomNavigationActivity">
+        <activity android:name=".BottomNavigationActivity"
+            android:screenOrientation="portrait"/>
 
-        </activity>
     </application>
 
 </manifest>

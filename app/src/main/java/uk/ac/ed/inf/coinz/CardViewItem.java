@@ -22,4 +22,6 @@ public class CardViewItem {
     public String getText2(){
         return mText2;
     }
+
+
 }

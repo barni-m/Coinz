@@ -37,46 +37,39 @@
         android:id="@+id/coin_dolr"
         android:layout_width="@dimen/coin_size"
         android:layout_height="@dimen/coin_size"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:src="@drawable/coin_dolr_large"
-        app:layout_constraintEnd_toStartOf="@+id/coin_peny"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintHorizontal_chainStyle="spread"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/barrier" />
+        app:layout_constraintBottom_toTopOf="@+id/coin_peny"
+        app:layout_constraintTop_toTopOf="@+id/barrier"
+        tools:layout_editor_absoluteX="16dp" />
 
     <ImageView
         android:id="@+id/coin_peny"
         android:layout_width="@dimen/coin_size"
         android:layout_height="@dimen/coin_size"
-        android:layout_marginTop="16dp"
         android:src="@drawable/coin_peny_large"
-        app:layout_constraintEnd_toStartOf="@+id/coin_quid"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/coin_dolr"
-        app:layout_constraintTop_toTopOf="@+id/barrier" />
+        app:layout_constraintBottom_toTopOf="@+id/coin_quid"
+        app:layout_constraintTop_toBottomOf="@+id/coin_dolr"
+        tools:layout_editor_absoluteX="16dp" />
 
     <ImageView
         android:id="@+id/coin_quid"
         android:layout_width="@dimen/coin_size"
         android:layout_height="@dimen/coin_size"
-        android:layout_marginTop="16dp"
         android:src="@drawable/coin_quid_large"
-        app:layout_constraintEnd_toStartOf="@+id/coin_shil"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/coin_peny"
-        app:layout_constraintTop_toTopOf="@+id/barrier" />
+        app:layout_constraintBottom_toTopOf="@+id/coin_shil"
+        app:layout_constraintTop_toBottomOf="@+id/coin_peny"
+        tools:layout_editor_absoluteX="16dp" />
 
     <ImageView
         android:id="@+id/coin_shil"
         android:layout_width="@dimen/coin_size"
         android:layout_height="@dimen/coin_size"
-        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
         android:src="@drawable/coin_shil_large"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/coin_quid"
-        app:layout_constraintTop_toTopOf="@+id/barrier" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/coin_quid"
+        tools:layout_editor_absoluteX="16dp" />
 
     <android.support.constraint.Placeholder
         android:id="@+id/placeholder_coin"
@@ -88,43 +81,47 @@
         android:layout_marginTop="8dp"
         app:barrierAllowsGoneWidgets="true"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/barrier2"
-        app:layout_constraintVertical_bias="0.04000002" />
-
-    <android.support.constraint.Barrier
-        android:id="@+id/barrier2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:barrierDirection="bottom"
-        app:constraint_referenced_ids="coin_dolr,coin_shil,coin_quid,coin_peny"
-        tools:layout_editor_absoluteY="567dp" />
+        app:layout_constraintEnd_toStartOf="@+id/include_coins"
+        app:layout_constraintStart_toEndOf="@+id/barrier3"
+        app:layout_constraintTop_toTopOf="@+id/barrier" />
 
     <TextView
         android:id="@+id/coin_currency_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="10dp"
         android:minWidth="100dp"
         android:textAlignment="center"
         android:textColor="@android:color/black"
         android:textSize="18sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/placeholder_coin" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/include_coins"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/coin_quid"
+        app:layout_constraintTop_toBottomOf="@+id/placeholder_coin"
+        app:layout_constraintVertical_bias="0.0" />
 
     <include
         android:id="@+id/include_coins"
         layout="@layout/coins_in_wallet_layout"
         android:layout_width="350dp"
-        android:layout_height="250dp"
-        android:layout_marginTop="24dp"
+        android:layout_height="200dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/coin_currency_name" />
+        app:layout_constraintHorizontal_bias="0.89"
+        app:layout_constraintStart_toEndOf="@+id/barrier3"
+        app:layout_constraintTop_toTopOf="@+id/barrier" />
+
+    <android.support.constraint.Barrier
+        android:id="@+id/barrier3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="right"
+        app:constraint_referenced_ids="coin_dolr,coin_shil,coin_quid,coin_peny"
+        tools:layout_editor_absoluteX="592dp" />
 
 </android.support.constraint.ConstraintLayout>

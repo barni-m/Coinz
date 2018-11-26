@@ -12,19 +12,54 @@ import java.util.ArrayList;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.RecyclerViewHolder> {
     private ArrayList<CardViewItem> mItemList;
+    private OnItemClickListener mListener;
 
+    public interface OnItemClickListener{
+        //void onItemClick(int position);
+        void  onDeleteClick(int position);
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener){
+        mListener = listener;
+    }
 
     public static class RecyclerViewHolder extends RecyclerView.ViewHolder{
         public ImageView mImageview;
         public TextView mTextView1;
         public TextView mTextView2;
+        public ImageView mTransactionImage;
 
-        public RecyclerViewHolder(View itemView) {
+        public RecyclerViewHolder(View itemView, OnItemClickListener listener) {
             super(itemView);
 
             mImageview = itemView.findViewById(R.id.card_img);
             mTextView1 = itemView.findViewById(R.id.main_text);
             mTextView2 = itemView.findViewById(R.id.description_text);
+            mTransactionImage = itemView.findViewById(R.id.img_transaction);
+
+           /* itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (listener != null) {
+                        int position = getAdapterPosition();
+                        if (position != RecyclerView.NO_POSITION){
+                            listener.onItemClick(position);
+                        }
+                    }
+                }
+            });*/
+
+            mTransactionImage.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (listener != null) {
+                        int position = getAdapterPosition();
+                        if (position != RecyclerView.NO_POSITION){
+                            listener.onDeleteClick(position);
+                        }
+                    }
+                }
+            });
 
         }
     }
@@ -38,7 +73,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     @Override
     public RecyclerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.card_view_coins, parent,false);
-        RecyclerViewHolder rvh = new RecyclerViewHolder(v);
+        RecyclerViewHolder rvh = new RecyclerViewHolder(v,mListener);
         return rvh;
     }
 
