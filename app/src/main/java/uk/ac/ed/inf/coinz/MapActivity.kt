@@ -69,7 +69,7 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
     private lateinit var db: FirebaseFirestore
     // User
     private var currentUser: FirebaseUser?= null
-    private lateinit var  userDB: DocumentReference
+    lateinit var  userDB: DocumentReference
 
     // Required proximity of marker
     private var requiredMarkerDistance = 25.0
@@ -104,15 +104,11 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
 
         // Switch to Menu button:
         menu_button.setOnClickListener { it ->
-            val intent = Intent(this, BottomNavigationActivity::class.java)
-            startActivity(intent)
-            overridePendingTransition(R.anim.slide_in_left,R.anim.slide_out_right)
+            goToBottomNavigationActivity()
         }
         // in case of imprecise touch
         menu_button_container.setOnClickListener { it ->
-            val intent = Intent(this, BottomNavigationActivity::class.java)
-            startActivity(intent)
-            overridePendingTransition(R.anim.slide_in_left,R.anim.slide_out_right)
+            goToBottomNavigationActivity()
         }
 
 
@@ -234,6 +230,12 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
 
 
 
+    }
+
+    private fun goToBottomNavigationActivity(){
+        val intent = Intent(this, BottomNavigationActivity::class.java)
+        startActivity(intent)
+        overridePendingTransition(R.anim.slide_in_left,R.anim.slide_out_right)
     }
 
 
