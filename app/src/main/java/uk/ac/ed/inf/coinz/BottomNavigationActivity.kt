@@ -5,6 +5,7 @@ import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.design.widget.BottomNavigationView
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_bottom_navigation.*
 
 
@@ -12,7 +13,7 @@ class BottomNavigationActivity : AppCompatActivity() {
 
 
     private lateinit  var fragmentSelected: Fragment
-
+    private lateinit var mAuth: FirebaseAuth
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,6 +25,13 @@ class BottomNavigationActivity : AppCompatActivity() {
             startActivity(intent)
             overridePendingTransition(R.anim.slide_in_right,R.anim.slide_out_left)
         }
+        mAuth = FirebaseAuth.getInstance()
+        log_out.setOnClickListener {
+            mAuth.signOut()
+            val intent = Intent(this, LoginSignupActivity::class.java)
+            startActivity(intent)
+        }
+
 
         var bottomnav : BottomNavigationView = findViewById(R.id.bottom_navigation)
         bottomnav.setOnNavigationItemSelectedListener(navListener)

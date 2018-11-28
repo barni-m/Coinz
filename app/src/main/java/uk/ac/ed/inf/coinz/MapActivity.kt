@@ -1,7 +1,9 @@
 package uk.ac.ed.inf.coinz
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.location.Location
 import android.os.AsyncTask
 import android.os.Bundle
@@ -33,6 +35,7 @@ import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
 import com.mapbox.mapboxsdk.annotations.IconFactory
 import kotlinx.android.synthetic.main.activity_map.*
 import org.joda.time.DateTime
+import org.json.JSONObject
 
 import java.io.IOException
 import java.io.InputStream
@@ -57,6 +60,7 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
     private var mapUrlString: String = "http://homepages.inf.ed.ac.uk/stg/coinz/"
     private val fileName: String = "coinzmap.geojson"
     private lateinit var geoJsonCoinsString: String
+    private lateinit var  ratesJSONObject: JSONObject
 
     private var locationEngine: LocationEngine? = null
     private var locationLayerPlugin: LocationLayerPlugin? = null
@@ -72,7 +76,11 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
     lateinit var  userDB: DocumentReference
 
     // Required proximity of marker
-    private var requiredMarkerDistance = 25.0
+    private var requiredMarkerDistance = 2500.0
+
+    // Shared Prefs
+    private val preferencesFile = "RatesPrefsFile" // for storing preferences
+    private var settings: SharedPreferences? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -98,6 +106,8 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
         }else{
             updateUIIfNoUserLoggedIn()
         }
+
+
 
 
 
@@ -137,7 +147,21 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
                 val collectedCoinsRef = userDB.collection("wallet").document("todaysCollectedCoins")
                 collectedCoinsRef.get().addOnCompleteListener {
                     val mapOfCollectedCoins = it.result?.data as HashMap<String, HashMap<String, Any>>
-                    val collectedIds = mapOfCollectedCoins.keys
+                    var collectedIds = mapOfCollectedCoins.keys
+                    collectedCoinsRef.parent.document("todaysCollectedAddedToBank").get().addOnCompleteListener {
+                        if(it.result!!.exists()){
+                            val mapOfAddedToBankIds = it.result?.data as HashMap
+                            val addedToBankIds = mapOfAddedToBankIds.keys
+                            collectedIds = collectedIds.union(addedToBankIds) as MutableSet<String>
+                        }
+
+
+                    val ratesJSONAsString=  JSONObject(geoJsonCoinsString).getString("rates")
+                    val settings = this@MapActivity?.getSharedPreferences(preferencesFile, Context.MODE_PRIVATE)
+                    val editor = settings?.edit()
+                    editor?.putString("ratesJSONAsString", ratesJSONAsString)
+                    editor?.apply()
+
 
                     val featureCollection: FeatureCollection = FeatureCollection.fromJson(geoJsonCoinsString)
                     val featureList: List<Feature>? = featureCollection.features()
@@ -145,13 +169,12 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
                         for (feature: Feature in featureList) {
 
 
-
                             val point: Point = feature.geometry() as Point
                             val properties: JsonObject? = feature.properties()
                             val coinID = properties?.get("id")?.asString
                             val coinCurrency = properties?.get("currency")?.asString
                             val iconName = "coin_" + coinCurrency?.toLowerCase()
-                            val iconResource =resources.getIdentifier(iconName,"drawable",packageName)
+                            val iconResource = resources.getIdentifier(iconName, "drawable", packageName)
                             val icon1 = IconFactory.getInstance(this@MapActivity).fromResource(iconResource)
 
                             if (coinID !in collectedIds) {
@@ -162,7 +185,7 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
                                 )
                             }
                         }
-                    }else{
+                    } else {
                         // If coins are not available, display a message to the user.
                         Toast.makeText(this@MapActivity, "Coins not available.",
                                 Toast.LENGTH_SHORT).show()
@@ -171,26 +194,26 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
 
 
                     map.setOnMarkerClickListener { marker ->
-                        if (locationEngine != null){
+                        if (locationEngine != null) {
                             // calculating distance to marker
-                            val lastLocation= locationEngine!!.lastLocation
-                            val lastLocationLatLng: LatLng = LatLng(lastLocation.latitude,lastLocation.longitude)
+                            val lastLocation = locationEngine!!.lastLocation
+                            val lastLocationLatLng: LatLng = LatLng(lastLocation.latitude, lastLocation.longitude)
                             val markerLatLng = marker.position
                             val distanceToMarker = lastLocationLatLng.distanceTo(markerLatLng)
                             // Show a toast with the distance to the selected marker
                             //Toast.makeText(this@MapActivity,distanceToMarker.toString() , Toast.LENGTH_LONG).show()
 
-                            if (distanceToMarker < requiredMarkerDistance){
+                            if (distanceToMarker < requiredMarkerDistance) {
                                 val id = marker.title
                                 //Toast.makeText(this@MapActivity,id , Toast.LENGTH_LONG).show()
                                 if (featureList != null) {
                                     for (feature: Feature in featureList) {
-                                        if (feature.properties()?.get("id")?.asString ==  id){
+                                        if (feature.properties()?.get("id")?.asString == id) {
                                             marker.remove()
                                             val coinValue = feature.properties()!!.get("value").asDouble
-                                            val coinCurrency= feature.properties()!!.get("currency").asString
-                                            Toast.makeText(this@MapActivity,"Distance: %.0fm\nAdded to wallet.".format(distanceToMarker) , Toast.LENGTH_LONG).show()
-                                            val coin = HashMap<String,Any>()
+                                            val coinCurrency = feature.properties()!!.get("currency").asString
+                                            Toast.makeText(this@MapActivity, "Distance: %.0fm\nAdded to wallet.".format(distanceToMarker), Toast.LENGTH_LONG).show()
+                                            val coin = HashMap<String, Any>()
                                             coin[coinCurrency] = coinValue
                                             val date = Date()
                                             val dateTimestamp = Timestamp(date)
@@ -200,8 +223,8 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
 
                                     }
                                 }
-                            }else{
-                                Toast.makeText(this@MapActivity,"Distance: %.0fm\nToo far away to collect.".format(distanceToMarker) , Toast.LENGTH_LONG).show()
+                            } else {
+                                Toast.makeText(this@MapActivity, "Distance: %.0fm\nToo far away to collect.".format(distanceToMarker), Toast.LENGTH_LONG).show()
                             }
 
                         }
@@ -209,6 +232,7 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
 
                     }
                 }
+            }
 
             }
         })
@@ -280,6 +304,7 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
                     val deleteCoin =  HashMap<String,Any>()
                     deleteCoin[id] = FieldValue.delete()
                     collectedCoinsRef.update(deleteCoin)
+                    userDB.collection("wallet").document("todaysCollectedAddedToBank").delete()
                 }
 
 
@@ -288,12 +313,34 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
         }.addOnFailureListener {
             Toast.makeText(this,"ERROR: Failed to delete old coins.", Toast.LENGTH_LONG).show()
         }
-
+        // reset bank counter if new day
+        resetBankCoinCounter()
         // In case user plays through midnight delete coins
         val tomorrowDate = DateTime(Date()).plusDays(1).toLocalDate().toDate()
         Timer("SettingUp", false).schedule(tomorrowDate) {
             deleteOldCoinsInWallet()
+            resetBankCoinCounter()
         }
+    }
+
+    private fun resetBankCoinCounter(){
+        val date = Timestamp(Date())
+        val path = userDB.collection("bank").document("numberOfCoinsAddedTodayToBank")
+        path.get().addOnCompleteListener {
+            if (it.isSuccessful) {
+                val date = DateTime(Date()).toLocalDate()
+                if (it.result!!.exists()) {
+                    val counterNHashMap = it.result?.data as java.util.HashMap<String, Any>
+                    val counterDate = DateTime(counterNHashMap["date"] as Date).toLocalDate()
+
+                    if(date > counterDate){
+                        path.update("n",0)
+                    }
+                }
+            }
+
+        }
+
     }
 
 

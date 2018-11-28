@@ -7,25 +7,31 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.support.constraint.Placeholder
 import android.support.v4.app.Fragment
+import android.support.v7.app.AlertDialog
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.transition.TransitionManager
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnticipateInterpolator
 import android.widget.Toast
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.firestore.DocumentReference
-import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.*
 import kotlinx.android.synthetic.main.coins_in_wallet_layout.*
 import kotlinx.android.synthetic.main.fragment_wallet.*
 import java.text.FieldPosition
+import org.joda.time.DateTime
+
+import java.util.*
 
 
 class WalletFragment : Fragment() {
+
+    private val TAG = "WalletFragment"
 
     // user (Firebase):
     private lateinit var db: FirebaseFirestore
@@ -39,6 +45,7 @@ class WalletFragment : Fragment() {
     private var coinsPENY: MutableList<Any> = mutableListOf<Any>()
     private var coinsSHIL: MutableList<Any> = mutableListOf<Any>()
     private var coinsQUID: MutableList<Any> = mutableListOf<Any>()
+
 
 
 
@@ -213,6 +220,12 @@ class WalletFragment : Fragment() {
             interpolator = AnticipateInterpolator()
         }.start()
 
+        val alphaShadow = PropertyValuesHolder.ofFloat(View.ALPHA,0f,1f)
+
+        ObjectAnimator.ofPropertyValuesHolder(coin_currency_name,alpha).apply {
+            interpolator = AnticipateInterpolator()
+        }.start()
+
     }
 
     private fun swapViewNoAnimation(v: View){
@@ -225,10 +238,25 @@ class WalletFragment : Fragment() {
     private fun showCoinsInRecycler(currency: String) {
         cardViewItemList = arrayListOf<CardViewItem>()
         when (currency) {
-            DOLR -> cardViewItemList = CreateCardList(coinsDOLR,R.drawable.coin_dolr, currency)
-            SHIL -> cardViewItemList = CreateCardList(coinsSHIL,R.drawable.coin_shil, currency)
-            QUID -> cardViewItemList = CreateCardList(coinsQUID,R.drawable.coin_quid, currency)
-            PENY -> cardViewItemList = CreateCardList(coinsPENY,R.drawable.coin_peny, currency)
+            DOLR -> {
+                cardViewItemList = CreateCardList(coinsDOLR, R.drawable.coin_dolr, currency)
+                noCoinsTextToggle(coinsDOLR.isEmpty())
+            }
+            SHIL -> {
+                cardViewItemList = CreateCardList(coinsSHIL, R.drawable.coin_shil, currency)
+                noCoinsTextToggle(coinsSHIL.isEmpty())
+            }
+
+            QUID -> {
+                cardViewItemList = CreateCardList(coinsQUID, R.drawable.coin_quid, currency)
+                noCoinsTextToggle(coinsQUID.isEmpty())
+            }
+
+            PENY -> {
+                cardViewItemList = CreateCardList(coinsPENY, R.drawable.coin_peny, currency)
+                noCoinsTextToggle(coinsPENY.isEmpty())
+            }
+
 
         }
         mRecyclerViewItem = recycler_view_coins
@@ -238,20 +266,53 @@ class WalletFragment : Fragment() {
         mRecyclerViewItem.layoutManager = mLayoutManager
         mRecyclerViewItem.adapter = mAdapter
         setClickListenerOnRecyclerViewItemClick()
+
+
+    }
+
+    private fun noCoinsTextToggle(hasNoCoins: Boolean){
+        if (hasNoCoins){
+            no_coin_of_selected_currency_text_view.visibility = View.VISIBLE
+        }else{
+            //TODO add to landscape
+            no_coin_of_selected_currency_text_view.visibility = View.GONE
+        }
+
     }
 
     private fun setClickListenerOnRecyclerViewItemClick() {
         mAdapter.setOnItemClickListener { position ->
             //cardViewItemList.get(index = position)
-            val clickedcard =cardViewItemList.get(position)
-            if (currentCurrency != null){
-                addToBank(clickedcard.text2, currentCurrency!!)
-                removeItem(position)
-            }
+            val clickedcard = cardViewItemList.get(position)
+            userDB.collection("bank").document("numberOfCoinsAddedTodayToBank").get()
+                    .addOnCompleteListener {
+                        if (it.isSuccessful) {
+                            if (it.result!!.exists()) {
+                                val counterNHashMap = it.result?.data as java.util.HashMap<String, Any>
+                                val counterValue = counterNHashMap["n"] as Long
 
-
+                                if (currentCurrency != null && counterValue < 25) {
+                                    addToBank(clickedcard.text2, currentCurrency!!)
+                                    removeItem(position)
+                                }else{
+                                    val alert = AlertDialog.Builder(this.requireActivity())
+                                    alert.apply {
+                                        setPositiveButton("OK",null)
+                                        setCancelable(true)
+                                        setTitle("Transaction Limit")
+                                        setMessage("Sorry, you cannot add more than 25 coins to the bank within a day.")
+                                        create().show()
+                                    }
+                                }
+                            } else {
+                                if (currentCurrency != null) {
+                                    addToBank(clickedcard.text2, currentCurrency!!)
+                                    removeItem(position)
+                                }
+                            }
+                        }
+                    }
         }
-
     }
 
     private fun removeItem(position: Int){
@@ -268,9 +329,44 @@ class WalletFragment : Fragment() {
                     val actualCoinValue = coin.get(currency)  as Double
                     val actualValRoundedString: String = "%.2f".format(actualCoinValue)
                     if (actualValRoundedString == amount){
+                        val bankPath = userDB.collection("bank")
+                        val bankCurrenciesPath = bankPath.document("currencies")
 
-                        //userDB.collection("bank").document("currencies").set()
+                        bankCurrenciesPath.get()
+                                .addOnCompleteListener {
+                                    if (it.isSuccessful){
+                                        var balance: Double
+                                        if (it.getResult()!!.exists()){
+                                            val currencyValuesInBank = it.result?.data as HashMap
+                                            if (currencyValuesInBank[currency] != null){
+                                                balance = currencyValuesInBank[currency] as Double
+                                                balance += actualCoinValue
+                                                bankCurrenciesPath.update(currency,balance)
+                                            }else{
+                                                val newCurrencyValue=  HashMap<String,Any>()
+                                                newCurrencyValue[currency] = actualCoinValue
+                                                bankCurrenciesPath.set(newCurrencyValue, SetOptions.merge())
+                                            }
 
+                                            updateCounter(bankPath)
+                                            addIdToDeletedCoins(id)
+                                            deleteCoinFromWalletFragmentList(actualCoinValue, currency)
+
+
+                                        }else{
+                                            val newCurrencyValue=  HashMap<String,Any>()
+                                            newCurrencyValue[currency]= actualCoinValue
+                                            bankCurrenciesPath.set(newCurrencyValue)
+                                            updateCounter(bankPath)
+                                            addIdToDeletedCoins(id)
+                                        }
+
+                                    }else{
+                                        Log.d(TAG, "No such document.")
+                                    }
+
+                                }
+                        // delete coin from wallet/todaysCollectedCoins
                         val deleteCoin =  HashMap<String,Any>()
                         deleteCoin[id] = FieldValue.delete()
                         collectedCoinsRef.update(deleteCoin)
@@ -279,11 +375,51 @@ class WalletFragment : Fragment() {
 
                 }
             }
-            //TODO add to bank
+            //TODO check why counter goes to 26
 
         }.addOnFailureListener {
             Toast.makeText(activity,"ERROR: Failed to delete coin.", Toast.LENGTH_LONG).show()
         }
+    }
+
+    private fun updateCounter(bankPath: CollectionReference) {
+        val counterPath = bankPath.document("numberOfCoinsAddedTodayToBank")
+        counterPath.get().addOnCompleteListener {
+            if (it.isSuccessful) {
+                var n: Long
+                val date = Timestamp(Date())
+                if (it.result!!.exists()) {
+                    val counterNHashMap = it.result?.data as HashMap<String, Any>
+                    n = counterNHashMap["n"] as Long
+                    n += 1
+                    counterPath.update("n", n)
+                    counterPath.update("date",date)
+                } else {
+                    val newCounter = HashMap<String, Any>()
+                    newCounter["n"] = 1
+                    newCounter["date"] = date
+                    counterPath.set(newCounter)
+                }
+            }
+        }
+    }
+
+    private fun addIdToDeletedCoins(id: String){
+        val coinId = HashMap<String, Any>()
+        coinId[id] = true
+        userDB.collection("wallet").document("todaysCollectedAddedToBank").set(coinId, SetOptions.merge())
+    }
+
+    private fun deleteCoinFromWalletFragmentList(actualCoinValue: Double, currency: String){
+
+        when (currency) {
+            DOLR -> coinsDOLR.remove(actualCoinValue)
+            SHIL -> coinsSHIL.remove(actualCoinValue)
+            QUID -> coinsQUID.remove(actualCoinValue)
+            PENY -> coinsPENY.remove(actualCoinValue)
+
+        }
+
     }
 
 
@@ -303,4 +439,12 @@ class WalletFragment : Fragment() {
         editor?.putString("currentCurrency", currentCurrency)
         editor?.apply()
     }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+
+
+    }
 }
+
+class coinid(id :String)

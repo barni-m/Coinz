@@ -111,7 +111,8 @@
         android:minWidth="100dp"
         android:textAlignment="center"
         android:textColor="@android:color/black"
-        android:textSize="18sp"
+        android:textSize="24sp"
+        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/placeholder_coin" />
@@ -119,12 +120,44 @@
     <include
         android:id="@+id/include_coins"
         layout="@layout/coins_in_wallet_layout"
-        android:layout_width="350dp"
-        android:layout_height="250dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:layout_marginTop="24dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/coin_currency_name" />
+        app:layout_constraintTop_toBottomOf="@+id/coin_currency_name"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <TextView
+        android:id="@+id/no_coin_of_selected_currency_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:background="#00d32f2f"
+        android:padding="5dp"
+        android:textColor="#000"
+        android:text="@string/no_coins_collected_of_selected_currency"
+        app:layout_constraintBottom_toBottomOf="@+id/include_coins"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/include_coins"
+        app:layout_constraintVertical_bias="0.481" />
+
+    <ImageView
+        android:id="@+id/shadow_top"
+        android:layout_width="match_parent"
+        android:layout_height="12dp"
+        android:rotation="180"
+        android:src="@drawable/shadow_downward_cast"
+        app:layout_constraintBottom_toTopOf="@+id/include_coins"
+        app:layout_constraintEnd_toEndOf="@+id/include_coins"
+        app:layout_constraintStart_toStartOf="@+id/include_coins"
+        app:layout_constraintTop_toBottomOf="@+id/coin_currency_name"
+        app:layout_constraintVertical_bias="1.0" />
 
 </android.support.constraint.ConstraintLayout>
