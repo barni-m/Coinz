@@ -15,15 +15,19 @@
         app:barrierDirection="bottom"
         app:constraint_referenced_ids="wallet_title"
         tools:layout_editor_absoluteY="567dp" />
-
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:src="@drawable/bar_gradient_wallet"
+        app:layout_constraintBottom_toBottomOf="@+id/wallet_title"
+        app:layout_constraintTop_toTopOf="@+id/wallet_title" />
 
     <TextView
         android:id="@+id/wallet_title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="#2c4089"
-        android:paddingBottom="10dp"
-        android:paddingTop="10dp"
+        android:height="60dp"
+        android:paddingTop="9dp"
         android:text="@string/wallet"
         android:textAlignment="center"
         android:textColor="@android:color/white"

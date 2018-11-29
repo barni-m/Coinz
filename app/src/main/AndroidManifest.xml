@@ -37,7 +37,9 @@
             android:theme="@style/AppTheme.NoActionBar" />
 
         <activity android:name=".BottomNavigationActivity" android:screenOrientation="portrait"/>
-            <!-- -->
+
+
+        <!-- -->
 
     </application>
 

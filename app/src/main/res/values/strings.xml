@@ -45,5 +45,15 @@
     <string name="coinzbank">CoinzBank</string>
     <string name="log_out">Log Out</string>
 
+    <string-array name="loan_lend">
+        <item>Lend</item>
+        <item>Loan</item>
+    </string-array>
+    <string-array name="currencies">
+        <item>DOLR</item>
+        <item>PENY</item>
+        <item>QUID</item>
+        <item>SHIL</item>
+    </string-array>
 
 </resources>
