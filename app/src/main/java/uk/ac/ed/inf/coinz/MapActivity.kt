@@ -146,8 +146,11 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
 
                 val collectedCoinsRef = userDB.collection("wallet").document("todaysCollectedCoins")
                 collectedCoinsRef.get().addOnCompleteListener {
+                    var collectedIds: MutableSet<String> = mutableSetOf()
+                    if(it.result!!.exists()) {
                     val mapOfCollectedCoins = it.result?.data as HashMap<String, HashMap<String, Any>>
-                    var collectedIds = mapOfCollectedCoins.keys
+                        collectedIds = mapOfCollectedCoins.keys
+                    }
                     collectedCoinsRef.parent.document("todaysCollectedAddedToBank").get().addOnCompleteListener {
                         if(it.result!!.exists()){
                             val mapOfAddedToBankIds = it.result?.data as HashMap
@@ -293,22 +296,24 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
     private fun deleteOldCoinsInWallet(){
         val collectedCoinsRef = userDB.collection("wallet").document("todaysCollectedCoins")
         collectedCoinsRef.get().addOnCompleteListener{
-            val mapOfCollectedCoins = it.result?.data as HashMap<String, HashMap<String,Any>>
-            for ((id, coin) in mapOfCollectedCoins) {
-                val coinDate: Date = coin.get("date") as Date
-                val formatter = SimpleDateFormat("yyyy/MM/dd")
-                val todayString = formatter.format(Date())
-                val todayDate = formatter.parse(todayString)
+           if (it.result!!.exists()) {
+               val mapOfCollectedCoins = it.result?.data as HashMap<String, HashMap<String, Any>>
+               for ((id, coin) in mapOfCollectedCoins) {
+                   val coinDate: Date = coin.get("date") as Date
+                   val formatter = SimpleDateFormat("yyyy/MM/dd")
+                   val todayString = formatter.format(Date())
+                   val todayDate = formatter.parse(todayString)
 
-                if (coinDate < todayDate){
-                    val deleteCoin =  HashMap<String,Any>()
-                    deleteCoin[id] = FieldValue.delete()
-                    collectedCoinsRef.update(deleteCoin)
-                    userDB.collection("wallet").document("todaysCollectedAddedToBank").delete()
-                }
+                   if (coinDate < todayDate) {
+                       val deleteCoin = HashMap<String, Any>()
+                       deleteCoin[id] = FieldValue.delete()
+                       collectedCoinsRef.update(deleteCoin)
+                       userDB.collection("wallet").document("todaysCollectedAddedToBank").delete()
+                   }
 
 
-            }
+               }
+           }
 
         }.addOnFailureListener {
             Toast.makeText(this,"ERROR: Failed to delete old coins.", Toast.LENGTH_LONG).show()

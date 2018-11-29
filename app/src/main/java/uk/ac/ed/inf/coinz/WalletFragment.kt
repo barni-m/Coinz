@@ -89,11 +89,12 @@ class WalletFragment : Fragment() {
         recycler_view_coins
         val collectedCoinsRef = userDB.collection("wallet").document("todaysCollectedCoins")
         collectedCoinsRef.get().addOnCompleteListener { coins ->
-            separateValuesToCurrenies(coins.result?.data as HashMap<String, HashMap<String, Any>>)
-            if (currentCurrency != null){
-                showCoinsInRecycler(currentCurrency!!)
+            if(coins.result!!.exists()) {
+                separateValuesToCurrenies(coins.result?.data as HashMap<String, HashMap<String, Any>>)
+                if (currentCurrency != null) {
+                    showCoinsInRecycler(currentCurrency!!)
+                }
             }
-
         }
     }
 

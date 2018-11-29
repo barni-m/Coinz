@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.RecyclerViewHolder> {
@@ -34,9 +33,9 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             super(itemView);
 
             mImageview = itemView.findViewById(R.id.card_img);
-            mTextView1 = itemView.findViewById(R.id.main_text);
-            mTextView2 = itemView.findViewById(R.id.description_text);
-            mTransactionImage = itemView.findViewById(R.id.img_transaction);
+            mTextView1 = itemView.findViewById(R.id.loan_currency);
+            mTextView2 = itemView.findViewById(R.id.loan_value);
+            mTransactionImage = itemView.findViewById(R.id.loan_img);
 
            /* itemView.setOnClickListener(new View.OnClickListener() {
                 @Override

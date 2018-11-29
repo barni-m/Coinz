@@ -15,6 +15,8 @@ class BottomNavigationActivity : AppCompatActivity() {
     private lateinit  var fragmentSelected: Fragment
     private lateinit var mAuth: FirebaseAuth
 
+    private var currentlySelectedFragment: Int = 0
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
