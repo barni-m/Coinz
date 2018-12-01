@@ -17,6 +17,11 @@ class BottomNavigationActivity : AppCompatActivity() {
 
     private var currentlySelectedFragment: Int = 0
 
+    private lateinit var messengerFragment: MessengerFragment
+    private lateinit var bankFragment: BankFragment
+    private lateinit var walletFragment: WalletFragment
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,6 +39,10 @@ class BottomNavigationActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        messengerFragment = MessengerFragment()
+        bankFragment = BankFragment()
+        walletFragment = WalletFragment()
+
 
         var bottomnav : BottomNavigationView = findViewById(R.id.bottom_navigation)
         bottomnav.setOnNavigationItemSelectedListener(navListener)
@@ -46,20 +55,20 @@ class BottomNavigationActivity : AppCompatActivity() {
             BottomNavigationView.OnNavigationItemSelectedListener {item ->
 
                 when (item.itemId) {
-                    R.id.nav_bottom_store -> {
-                        fragmentSelected = StoreFragment()
+                    R.id.nav_bottom_messenger -> {
+                        fragmentSelected = messengerFragment
                     }
                     R.id.nav_bottom_bank -> {
-                        fragmentSelected = BankFragment()
+                        fragmentSelected = bankFragment
                     }
                     R.id.nav_bottom_wallet -> {
-                        fragmentSelected = WalletFragment()
+                        fragmentSelected = walletFragment
                     }
                 }
 
+
                 supportFragmentManager.beginTransaction().replace(R.id.fragment_container,
                         fragmentSelected).commit()
-
                 return@OnNavigationItemSelectedListener true
             }
 

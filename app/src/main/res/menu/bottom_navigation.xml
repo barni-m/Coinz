@@ -9,8 +9,8 @@
         android:icon="@drawable/ic_local_bank_24dp"
         android:title="@string/bank"/>
 
-    <item android:id="@+id/nav_bottom_store"
-        android:icon="@drawable/ic_store_black_24dp"
-        android:title="@string/store"/>
+    <item android:id="@+id/nav_bottom_messenger"
+        android:icon="@drawable/ic_iconmonstr_sms_3"
+        android:title="@string/coin_messenger"/>
 
 </menu>

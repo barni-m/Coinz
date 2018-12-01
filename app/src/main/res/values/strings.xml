@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Coinz</string>
+    <string name="coinz_app_name">Coinz</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_main2">Main2Activity</string>
     <string name="button">Button</string>
@@ -39,7 +39,7 @@
     <string name="wallet_bank_title">Coinz Wallet</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="wallet">Wallet</string>
-    <string name="store">Store</string>
+    <string name="coin_messenger">Coin Messenger</string>
     <string name="bank">Bank</string>
     <string name="no_coins_collected_of_selected_currency">No coins in wallet of selected currency.</string>
     <string name="coinzbank">CoinzBank</string>

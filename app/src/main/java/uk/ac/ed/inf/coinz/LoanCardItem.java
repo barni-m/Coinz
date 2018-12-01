@@ -2,30 +2,46 @@ package uk.ac.ed.inf.coinz;
 
 public class LoanCardItem {
     private int mImageResource;
-    private String mVal;
-    private String mInterest;
-    private String mRepayPeriod;
+    private Double mVal;
+    private String mCurrency;
+    private Double mInterest;
+    private int mRepayPeriod;
+    private String mId;
+    private String mEmail;
 
-    public LoanCardItem(int currencyImage, String val,String interest, String repayPeriod){
+    public LoanCardItem(int currencyImage,String currency, Double val,Double interest, int repayPeriod, String id, String email){
         mImageResource = currencyImage;
         mVal = val;
         mInterest = interest;
         mRepayPeriod =  repayPeriod;
+        mCurrency = currency;
+        mId = id;
+        mEmail = email;
     }
 
     public int getCurrencyImageResource(){
         return mImageResource;
     }
 
-    public String getValue(){
+    public Double getValue(){
         return mVal;
     }
 
-    public String getInterestRate(){
+    public Double getInterestRate(){
         return mInterest;
     }
 
-    public String getRepayPeriod(){
+    public int getRepayPeriod(){
         return mRepayPeriod;
+    }
+
+    public  String getCurrency(){ return mCurrency;}
+
+    public String getId(){
+        return mId;
+    }
+
+    public  String getEmail(){
+        return mEmail;
     }
 }

@@ -46,6 +46,7 @@
             android:background="@drawable/menu_button"
             android:minHeight="0dp"
             android:minWidth="0dp"
+            android:rotation="180"
 
             />
     </RelativeLayout>

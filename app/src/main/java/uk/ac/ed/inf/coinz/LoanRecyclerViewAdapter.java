@@ -27,18 +27,22 @@ public class LoanRecyclerViewAdapter extends RecyclerView.Adapter<LoanRecyclerVi
     public static class LoanRecyclerViewHolder extends RecyclerView.ViewHolder{
         public ImageView mCurrencyImageview;
         public TextView mTextValue;
+        public TextView mTextCurrency;
         public TextView mTextInterestRate;
         public TextView mTextRepayPeriod;
         public ImageView mLoanImage;
+
 
         public LoanRecyclerViewHolder(View itemView, LoanRecyclerViewAdapter.OnItemClickListener listener) {
             super(itemView);
 
             mCurrencyImageview = itemView.findViewById(R.id.card_img);
-            mTextValue = itemView.findViewById(R.id.loan_currency);
-            mTextInterestRate = itemView.findViewById(R.id.loan_value);
+            mTextCurrency = itemView.findViewById(R.id.loan_currency);
+            mTextValue = itemView.findViewById(R.id.loan_value);
+            mTextInterestRate = itemView.findViewById(R.id.interest_rate);
             mTextRepayPeriod = itemView.findViewById(R.id.repay_period);
             mLoanImage = itemView.findViewById(R.id.loan_img);
+
 
 
            /* itemView.setOnClickListener(new View.OnClickListener() {
@@ -76,8 +80,7 @@ public class LoanRecyclerViewAdapter extends RecyclerView.Adapter<LoanRecyclerVi
     @Override
     public LoanRecyclerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.card_view_coins_loan, parent,false);
-        LoanRecyclerViewHolder rvh = new LoanRecyclerViewHolder(v,mListener);
-        return rvh;
+        return new LoanRecyclerViewHolder(v,mListener);
     }
 
 
@@ -85,9 +88,13 @@ public class LoanRecyclerViewAdapter extends RecyclerView.Adapter<LoanRecyclerVi
     public void onBindViewHolder(@NonNull LoanRecyclerViewHolder holder, int position) {
         LoanCardItem currentItem = mItemList.get(position);
         holder.mCurrencyImageview.setImageResource(currentItem.getCurrencyImageResource());
-        holder.mTextValue.setText(currentItem.getValue());
-        holder.mTextRepayPeriod.setText(currentItem.getRepayPeriod());
-        holder.mTextInterestRate.setText(currentItem.getInterestRate());
+        holder.mTextCurrency.setText(currentItem.getCurrency());
+        holder.mTextValue.setText("Value: " + currentItem.getValue().toString());
+        holder.mTextRepayPeriod.setText("Repay in: " + Integer.toString(currentItem.getRepayPeriod()));
+        Double interestRate = (currentItem.getInterestRate()*100);
+        holder.mTextInterestRate.setText("Interest rate: " + interestRate.toString() + "%");
+
+
     }
 
     @Override

@@ -138,11 +138,11 @@
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintBaseline_toBaselineOf="@+id/textView"
-        app:layout_constraintEnd_toEndOf="@+id/imageView"
-        app:layout_constraintStart_toStartOf="@+id/imageView" />
+        app:layout_constraintEnd_toEndOf="@+id/total_gold_img"
+        app:layout_constraintStart_toStartOf="@+id/total_gold_img" />
 
     <ImageView
-        android:id="@+id/imageView"
+        android:id="@+id/total_gold_img"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
@@ -167,10 +167,10 @@
         android:layout_marginTop="8dp"
         android:textColor="@android:color/black"
         android:textSize="20sp"
-        app:layout_constraintBottom_toBottomOf="@+id/imageView"
-        app:layout_constraintEnd_toEndOf="@+id/imageView"
-        app:layout_constraintStart_toStartOf="@+id/imageView"
-        app:layout_constraintTop_toTopOf="@+id/imageView" />
+        app:layout_constraintBottom_toBottomOf="@+id/total_gold_img"
+        app:layout_constraintEnd_toEndOf="@+id/total_gold_img"
+        app:layout_constraintStart_toStartOf="@+id/total_gold_img"
+        app:layout_constraintTop_toTopOf="@+id/total_gold_img" />
 
     <TextView
         android:id="@+id/textView4"
@@ -254,7 +254,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="15dp"
         android:layout_marginTop="5dp"
-        android:text="Take a lone from an investor:"
+        android:text="Take a loan from an investor:"
         android:textColor="@android:color/black"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
@@ -263,6 +263,7 @@
     <Button
         android:id="@+id/loan_ad_submit"
         android:layout_width="wrap_content"
+        android:minWidth="146dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         android:backgroundTint="#f09f49"
@@ -313,5 +314,23 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintGuide_begin="210dp" />
+
+    <TextView
+        android:id="@+id/no_ads"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="No loan ads available.\n(You may take your own loans,\n hence they won't show here.)"
+        android:textColor="@android:color/black"
+        android:textAlignment="center"
+        android:textSize="14sp"
+        android:textStyle="italic"
+        app:layout_constraintBottom_toBottomOf="@+id/include3"
+        app:layout_constraintEnd_toEndOf="@+id/include3"
+        app:layout_constraintStart_toStartOf="@+id/include3"
+        app:layout_constraintTop_toTopOf="@+id/include3" />
 
 </android.support.constraint.ConstraintLayout>

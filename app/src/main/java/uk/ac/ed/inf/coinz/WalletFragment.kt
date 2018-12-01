@@ -448,4 +448,3 @@ class WalletFragment : Fragment() {
     }
 }
 
-class coinid(id :String)
