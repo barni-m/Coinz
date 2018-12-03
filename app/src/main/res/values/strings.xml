@@ -44,6 +44,7 @@
     <string name="no_coins_collected_of_selected_currency">No coins in wallet of selected currency.</string>
     <string name="coinzbank">CoinzBank</string>
     <string name="log_out">Log Out</string>
+    <string name="coinz_messenger">Coinz Messenger</string>
 
     <string-array name="loan_lend">
         <item>Lend</item>

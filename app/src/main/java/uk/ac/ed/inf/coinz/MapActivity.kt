@@ -76,7 +76,7 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
     lateinit var  userDB: DocumentReference
 
     // Required proximity of marker
-    private var requiredMarkerDistance = 2500.0
+    private var requiredMarkerDistance = 2500.0 // todo set back to 25m
 
     // Shared Prefs
     private val preferencesFile = "RatesPrefsFile" // for storing preferences
@@ -364,9 +364,9 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
         val year: Int = currentDate.year
         val month: Int  = currentDate.monthValue
         val day: Int = currentDate.dayOfMonth
-        val dayString: String = day.toString()
+        var dayString: String = day.toString()
         if (day <= 9){
-            val dayString: String = "0" + day.toString()
+            dayString = "0" + dayString
         }
         return mapUrlString + year + "/" + month + "/" + dayString + "/" + fileName
 

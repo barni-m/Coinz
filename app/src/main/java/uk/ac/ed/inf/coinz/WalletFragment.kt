@@ -78,7 +78,7 @@ class WalletFragment : Fragment() {
         super.onCreate(savedInstanceState)
 
         setUpUser()
-        recycler_view_coins
+        recycler_view_coins // todo delete these lines
         settings= activity?.getSharedPreferences(preferencesFile, Context.MODE_PRIVATE)
         currentCurrency = settings?.getString("currentCurrency", DOLR)
 

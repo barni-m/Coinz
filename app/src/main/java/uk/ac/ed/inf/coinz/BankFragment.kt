@@ -81,7 +81,6 @@ class BankFragment: Fragment(), AdapterView.OnItemSelectedListener{
 
 
 
-
         return inflater.inflate(R.layout.fragment_bank, container,false)
     }
 
@@ -110,7 +109,8 @@ class BankFragment: Fragment(), AdapterView.OnItemSelectedListener{
 
         total_gold_img.setOnClickListener {
             if (magnetActivateClickCounter == 25){
-                //todo haha
+
+
             }
             magnetActivateClickCounter += 1
         }

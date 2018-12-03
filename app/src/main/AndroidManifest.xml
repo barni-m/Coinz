@@ -19,11 +19,13 @@
         android:label="@string/coinz_app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:usesCleartextTraffic="true"
         android:theme="@style/AppTheme.NoActionBar">
         <activity
             android:name=".MapActivity"
             android:label="@string/title_activity_map"
             android:theme="@style/AppTheme.NoActionBar">
+
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

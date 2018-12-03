@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "120467923620",
+    "firebase_url": "https://coinz-firebase.firebaseio.com",
+    "project_id": "coinz-firebase",
+    "storage_bucket": "coinz-firebase.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:120467923620:android:cf047dfca797373b",
+        "android_client_info": {
+          "package_name": "uk.ac.ed.inf.coinz"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "120467923620-5eu5ckl0enjia2oige8fr92uq36uh9j5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "uk.ac.ed.inf.coinz",
+            "certificate_hash": "7fa443244da63288e0c00f43c6c2fcd5b6c184ac"
+          }
+        },
+        {
+          "client_id": "120467923620-ss9s1nvlgmdevofoka0t47k3igd3d6vc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBatLe8Ir1TPWcnm3fNNnmu6ChciPxwBu0"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "120467923620-ss9s1nvlgmdevofoka0t47k3igd3d6vc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
