@@ -91,7 +91,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         return rvh;
     }
 
-    private void setUpUser() {
+    public void setUpUser() {
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
         email = currentUser.getEmail();
@@ -104,9 +104,8 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         holder.mTextView1.setText(currentItem.getText1());
         holder.mTextView2.setText(currentItem.getText2());
         String from = currentItem.getFrom();
-        if (from == email){
-            //holder.mGroup.setVisibility(View.GONE);
-            holder.mFrom.setText(from);
+        if (from.equals(email)){
+            holder.mGroup.setVisibility(View.GONE);
         }else holder.mFrom.setText(from);
     }
 

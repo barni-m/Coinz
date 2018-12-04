@@ -58,11 +58,12 @@
             android:id="@+id/from_tag"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="16dp"
             android:text="From:"
             android:textColor="#000"
-            app:layout_constraintBaseline_toBaselineOf="@+id/loan_currency"
-            app:layout_constraintStart_toEndOf="@+id/loan_currency" />
+            android:textStyle="italic"
+            app:layout_constraintBaseline_toBaselineOf="@+id/loan_value"
+            app:layout_constraintStart_toEndOf="@+id/loan_value" />
 
         <TextView
             android:id="@+id/from_email"
@@ -73,6 +74,7 @@
             android:text="ialed@kabskdc.com"
             android:textColor="#2b5cb3"
             android:textSize="12sp"
+            android:textStyle="italic"
             app:layout_constraintBaseline_toBaselineOf="@+id/from_tag"
             app:layout_constraintEnd_toStartOf="@+id/loan_img"
             app:layout_constraintStart_toEndOf="@+id/from_tag" />

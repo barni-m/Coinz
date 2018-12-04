@@ -56,6 +56,8 @@ class MessengerFragment: Fragment(){
         super.onCreate(savedInstanceState)
         setUpUser()
 
+
+
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -199,7 +201,7 @@ class MessengerFragment: Fragment(){
                             if("from" in coinData.keys){
                                 from = coinData["from"] as String
                             }
-                            val cardViewItem =CardViewItem(coinImg,currency,value.toString(), from)
+                            val cardViewItem =CardViewItem(coinImg,currency,"%.2f".format(value), from)
                             cardViewCoinsForMessaging.add(cardViewItem)
                         }
                         showMessagableCoinsInRecycler()

@@ -39,6 +39,8 @@ class BottomNavigationActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        CoinMessageListener().realTimeUpdateListener(this)
+
         messengerFragment = MessengerFragment()
         bankFragment = BankFragment()
         walletFragment = WalletFragment()
@@ -50,6 +52,8 @@ class BottomNavigationActivity : AppCompatActivity() {
         supportFragmentManager.beginTransaction().replace(R.id.fragment_container,
                 WalletFragment()).commit()
     }
+
+
 
     private val navListener : BottomNavigationView.OnNavigationItemSelectedListener =
             BottomNavigationView.OnNavigationItemSelectedListener {item ->

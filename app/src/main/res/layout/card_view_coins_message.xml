@@ -46,9 +46,9 @@
 
         <ImageView
             android:id="@+id/loan_img"
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:layout_marginEnd="5dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
             android:src="@drawable/ic_iconmonstr_paper_plane_2"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -58,11 +58,13 @@
             android:id="@+id/from_tag"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="16dp"
             android:text="From:"
+            android:textAlignment="textStart"
             android:textColor="#000"
-            app:layout_constraintBaseline_toBaselineOf="@+id/loan_currency"
-            app:layout_constraintStart_toEndOf="@+id/loan_currency" />
+            android:textStyle="italic"
+            app:layout_constraintBaseline_toBaselineOf="@+id/loan_value"
+            app:layout_constraintStart_toEndOf="@+id/loan_value" />
 
         <TextView
             android:id="@+id/from_email"
@@ -70,9 +72,10 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="2dp"
             android:layout_marginStart="2dp"
-            android:text="ialed@kabskdc.com"
+            android:text="ialed@ljklj.com"
             android:textColor="#2b5cb3"
             android:textSize="12sp"
+            android:textStyle="italic"
             app:layout_constraintBaseline_toBaselineOf="@+id/from_tag"
             app:layout_constraintEnd_toStartOf="@+id/loan_img"
             app:layout_constraintStart_toEndOf="@+id/from_tag" />
