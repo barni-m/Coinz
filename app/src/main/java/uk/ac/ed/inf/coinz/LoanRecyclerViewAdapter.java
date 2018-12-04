@@ -33,6 +33,7 @@ public class LoanRecyclerViewAdapter extends RecyclerView.Adapter<LoanRecyclerVi
         public ImageView mLoanImage;
 
 
+
         public LoanRecyclerViewHolder(View itemView, LoanRecyclerViewAdapter.OnItemClickListener listener) {
             super(itemView);
 
@@ -42,6 +43,7 @@ public class LoanRecyclerViewAdapter extends RecyclerView.Adapter<LoanRecyclerVi
             mTextInterestRate = itemView.findViewById(R.id.interest_rate);
             mTextRepayPeriod = itemView.findViewById(R.id.repay_period);
             mLoanImage = itemView.findViewById(R.id.loan_img);
+
 
 
 

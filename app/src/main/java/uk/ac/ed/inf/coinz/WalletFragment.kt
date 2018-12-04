@@ -5,7 +5,6 @@ import android.animation.PropertyValuesHolder
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.support.constraint.Placeholder
 import android.support.v4.app.Fragment
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.LinearLayoutManager
@@ -23,10 +22,10 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.*
 import kotlinx.android.synthetic.main.coins_in_wallet_layout.*
 import kotlinx.android.synthetic.main.fragment_wallet.*
-import java.text.FieldPosition
-import org.joda.time.DateTime
 
 import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 
 class WalletFragment : Fragment() {
@@ -41,10 +40,10 @@ class WalletFragment : Fragment() {
     private var email: String? = null
 
     // user coins in wallet
-    private var coinsDOLR: MutableList<Any> = mutableListOf<Any>()
-    private var coinsPENY: MutableList<Any> = mutableListOf<Any>()
-    private var coinsSHIL: MutableList<Any> = mutableListOf<Any>()
-    private var coinsQUID: MutableList<Any> = mutableListOf<Any>()
+    private var coinsDOLR: ArrayList<HashMap<String,Any>> = arrayListOf<HashMap<String,Any>>()
+    private var coinsPENY: ArrayList<HashMap<String,Any>> = arrayListOf<HashMap<String,Any>>()
+    private var coinsSHIL: ArrayList<HashMap<String,Any>> = arrayListOf<HashMap<String,Any>>()
+    private var coinsQUID: ArrayList<HashMap<String,Any>> = arrayListOf<HashMap<String,Any>>()
 
 
 
@@ -66,6 +65,8 @@ class WalletFragment : Fragment() {
     private lateinit var mAdapter: RecyclerViewAdapter
     private lateinit var mLayoutManager: RecyclerView.LayoutManager
     private lateinit var cardViewItemList: ArrayList<CardViewItem>
+
+
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -164,21 +165,35 @@ class WalletFragment : Fragment() {
 
 
     private fun separateValuesToCurrenies(coins: HashMap<String, HashMap<String, Any>>) {
-        for ((_, coin) in coins) {
-            for ((key, value) in coin) {
-                when (key) {
-                    DOLR -> coinsDOLR.add(value)
+        coinsDOLR.clear()
+        coinsPENY.clear()
+        coinsQUID.clear()
+        coinsSHIL.clear()
 
-                    PENY -> coinsPENY.add(value)
-
-                    QUID -> coinsQUID.add(value)
-
-                    SHIL -> coinsSHIL.add(value)
+        for((id,coin)in coins){
+            var currency: String = ""
+            var coin_value: Double = 0.0
+            var from_email: String = email!!
+            val coin_detail_keys = coin.keys
+            if ("from" in coin_detail_keys){
+                from_email = coin["from"] as String
+            }
+            for (detail_key in coin_detail_keys){
+                if (detail_key in listOf<String>(DOLR,PENY,SHIL,QUID)){
+                    currency = detail_key
+                    coin_value = coin[detail_key] as Double
                 }
+            }
+            val valWithMail = hashMapOf<String,Any>("value" to coin_value, "from" to from_email)
+
+            when (currency){
+                DOLR -> coinsDOLR.add(valWithMail)
+                SHIL -> coinsSHIL.add(valWithMail)
+                QUID -> coinsQUID.add(valWithMail)
+                PENY -> coinsPENY.add(valWithMail)
             }
         }
     }
-
 
 
 
@@ -237,24 +252,25 @@ class WalletFragment : Fragment() {
 
 
     private fun showCoinsInRecycler(currency: String) {
+
         cardViewItemList = arrayListOf<CardViewItem>()
         when (currency) {
             DOLR -> {
-                cardViewItemList = CreateCardList(coinsDOLR, R.drawable.coin_dolr, currency)
+                cardViewItemList = createCardList(coinsDOLR, R.drawable.coin_dolr, currency)
                 noCoinsTextToggle(coinsDOLR.isEmpty())
             }
             SHIL -> {
-                cardViewItemList = CreateCardList(coinsSHIL, R.drawable.coin_shil, currency)
+                cardViewItemList = createCardList(coinsSHIL, R.drawable.coin_shil, currency)
                 noCoinsTextToggle(coinsSHIL.isEmpty())
             }
 
             QUID -> {
-                cardViewItemList = CreateCardList(coinsQUID, R.drawable.coin_quid, currency)
+                cardViewItemList = createCardList(coinsQUID, R.drawable.coin_quid, currency)
                 noCoinsTextToggle(coinsQUID.isEmpty())
             }
 
             PENY -> {
-                cardViewItemList = CreateCardList(coinsPENY, R.drawable.coin_peny, currency)
+                cardViewItemList = createCardList(coinsPENY, R.drawable.coin_peny, currency)
                 noCoinsTextToggle(coinsPENY.isEmpty())
             }
 
@@ -293,7 +309,7 @@ class WalletFragment : Fragment() {
                                 val counterValue = counterNHashMap["n"] as Long
 
                                 if (currentCurrency != null && counterValue < 25) {
-                                    addToBank(clickedcard.text2, currentCurrency!!)
+                                    addToBank(clickedcard.text2, currentCurrency!!,clickedcard.from)
                                     removeItem(position)
                                 }else{
                                     val alert = AlertDialog.Builder(this.requireActivity())
@@ -307,7 +323,7 @@ class WalletFragment : Fragment() {
                                 }
                             } else {
                                 if (currentCurrency != null) {
-                                    addToBank(clickedcard.text2, currentCurrency!!)
+                                    addToBank(clickedcard.text2, currentCurrency!!, clickedcard.from)
                                     removeItem(position)
                                 }
                             }
@@ -321,7 +337,7 @@ class WalletFragment : Fragment() {
         mAdapter.notifyItemRemoved(position)
     }
 
-    private fun addToBank(amount: String, currency: String){
+    private fun addToBank(amount: String, currency: String, from: String){
         val collectedCoinsRef = userDB.collection("wallet").document("todaysCollectedCoins")
         collectedCoinsRef.get().addOnCompleteListener{
             val mapOfCollectedCoins = it.result?.data as HashMap<String, HashMap<String,Any>>
@@ -349,11 +365,10 @@ class WalletFragment : Fragment() {
                                                 bankCurrenciesPath.set(newCurrencyValue, SetOptions.merge())
                                             }
 
+
                                             updateCounter(bankPath)
                                             addIdToDeletedCoins(id)
-                                            deleteCoinFromWalletFragmentList(actualCoinValue, currency)
-
-
+                                            deleteCoinFromWalletFragmentList(actualCoinValue, currency,from)
                                         }else{
                                             val newCurrencyValue=  HashMap<String,Any>()
                                             newCurrencyValue[currency]= actualCoinValue
@@ -361,7 +376,6 @@ class WalletFragment : Fragment() {
                                             updateCounter(bankPath)
                                             addIdToDeletedCoins(id)
                                         }
-
                                     }else{
                                         Log.d(TAG, "No such document.")
                                     }
@@ -411,23 +425,25 @@ class WalletFragment : Fragment() {
         userDB.collection("wallet").document("todaysCollectedAddedToBank").set(coinId, SetOptions.merge())
     }
 
-    private fun deleteCoinFromWalletFragmentList(actualCoinValue: Double, currency: String){
-
+    private fun deleteCoinFromWalletFragmentList(actualCoinValue: Double, currency: String,from: String){
+        var valWithEmail = HashMap<String,Any>()
+        valWithEmail["value"] = actualCoinValue
+        valWithEmail["from"] = from
         when (currency) {
-            DOLR -> coinsDOLR.remove(actualCoinValue)
-            SHIL -> coinsSHIL.remove(actualCoinValue)
-            QUID -> coinsQUID.remove(actualCoinValue)
-            PENY -> coinsPENY.remove(actualCoinValue)
+            DOLR -> coinsDOLR.remove(valWithEmail)
+            SHIL -> coinsSHIL.remove(valWithEmail)
+            QUID -> coinsQUID.remove(valWithEmail)
+            PENY -> coinsPENY.remove(valWithEmail)
 
         }
 
     }
 
 
-    private fun CreateCardList(coinsSelected: MutableList<Any>,imageCoin: Int, currency: String): ArrayList<CardViewItem> {
+    private fun createCardList(coinsSelected: ArrayList<HashMap<String,Any>>, imageCoin: Int, currency: String): ArrayList<CardViewItem> {
         val cardViewItemList: ArrayList<CardViewItem> = arrayListOf<CardViewItem>()
         for (coin in coinsSelected)
-            cardViewItemList.add(CardViewItem(imageCoin, currency, "%.2f".format(coin)))
+            cardViewItemList.add(CardViewItem(imageCoin, currency, "%.2f".format(coin["value"] as Double),coin["from"] as String))
         return cardViewItemList
     }
 

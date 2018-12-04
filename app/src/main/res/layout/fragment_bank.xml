@@ -323,7 +323,7 @@
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="No loan ads available.\n(You may take your own loans,\n hence they won't show here.)"
+        android:text="No loan ads available.\n(You may not take your own loans,\n hence they won't show here.)"
         android:textColor="@android:color/black"
         android:textAlignment="center"
         android:textSize="14sp"

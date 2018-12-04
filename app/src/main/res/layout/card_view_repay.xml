@@ -61,11 +61,11 @@
             android:id="@+id/repay_period_tag"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
+            android:layout_marginTop="6dp"
             android:text="Repay within: "
             android:textColor="#000"
-            android:textSize="15sp"
-            app:layout_constraintStart_toEndOf="@+id/user_img"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="@+id/user_tag"
             app:layout_constraintTop_toBottomOf="@+id/user_tag" />
 
         <TextView
@@ -81,109 +81,91 @@
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toEndOf="@+id/repay_period_tag" />
 
-        <android.support.constraint.ConstraintLayout
-            android:id="@+id/deatils_layout"
-            android:layout_width="0dp"
+        <Button
+            android:id="@+id/repay_button"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:visibility="visible"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:backgroundTint="#6f9ece"
+            android:drawableEnd="@drawable/ic_iconmonstr_undo_1"
+            android:text="Repay"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toBottomOf="@+id/interest_rate"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.8"
+            app:layout_constraintStart_toEndOf="@+id/repay_value"
+            app:layout_constraintTop_toTopOf="@+id/repay_value" />
+
+        <ImageView
+            android:id="@+id/coin_img"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="3dp"
+            android:padding="2dp"
+            android:src="@drawable/coin_quid"
+            app:layout_constraintEnd_toEndOf="@+id/user_img"
+            app:layout_constraintStart_toStartOf="@+id/user_img"
+            app:layout_constraintTop_toBottomOf="@+id/user_img" />
+
+        <TextView
+            android:id="@+id/repay_currency"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="POUND"
+            android:textColor="#000"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/coin_img"
+            app:layout_constraintStart_toStartOf="@+id/coin_img"
+            app:layout_constraintTop_toBottomOf="@+id/coin_img"
+            app:layout_constraintVertical_bias="0.0"
+            app:layout_constraintVertical_chainStyle="spread_inside" />
+
+        <TextView
+            android:id="@+id/interest_rate_tag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Interest rate: "
+            android:textColor="#000"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="@+id/current_value_tag"
+            app:layout_constraintTop_toBottomOf="@+id/current_value_tag" />
+
+        <TextView
+            android:id="@+id/interest_rate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="125%"
+            android:textColor="#000"
+            android:textSize="14sp"
+            app:layout_constraintBaseline_toBaselineOf="@+id/interest_rate_tag"
+            app:layout_constraintStart_toEndOf="@+id/interest_rate_tag" />
+
+        <TextView
+            android:id="@+id/current_value_tag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Current amount:"
+            android:textColor="#000"
+            app:layout_constraintStart_toStartOf="@+id/repay_period_tag"
+            app:layout_constraintTop_toTopOf="@+id/coin_img" />
+
+        <TextView
+            android:id="@+id/repay_value"
+            android:layout_width="wrap_content"
+            android:layout_height="17dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="1dp"
+            android:text="1712732"
+            android:textColor="#000"
+            app:layout_constraintBaseline_toBaselineOf="@+id/current_value_tag"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/user_img"
-            app:layout_constraintVertical_bias="1.0">
-
-            <ImageView
-                android:id="@+id/coin_img"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:layout_marginStart="2dp"
-                android:padding="2dp"
-                android:src="@drawable/coin_quid"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.38" />
-
-            <TextView
-                android:id="@+id/repay_currency"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="POUND"
-                android:textColor="#000"
-                app:layout_constraintBottom_toTopOf="@+id/current_value"
-                app:layout_constraintStart_toEndOf="@+id/coin_img"
-                app:layout_constraintTop_toTopOf="@+id/coin_img"
-                app:layout_constraintVertical_bias="0.0"
-                app:layout_constraintVertical_chainStyle="spread_inside" />
-
-            <TextView
-                android:id="@+id/current_value"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="2dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="2dp"
-                android:text="Current value (with interest):"
-                android:textColor="#000"
-                app:layout_constraintBottom_toTopOf="@+id/textView12"
-                app:layout_constraintStart_toEndOf="@+id/coin_img"
-                app:layout_constraintTop_toBottomOf="@+id/repay_currency"
-                app:layout_constraintVertical_bias="0.32999998" />
-
-            <TextView
-                android:id="@+id/repay_value"
-                android:layout_width="wrap_content"
-                android:layout_height="17dp"
-                android:layout_marginEnd="8dp"
-                android:layout_marginStart="1dp"
-                android:text="1712732"
-                android:textColor="#000"
-                app:layout_constraintBaseline_toBaselineOf="@+id/current_value"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.0"
-                app:layout_constraintStart_toEndOf="@+id/current_value" />
-
-            <TextView
-                android:id="@+id/textView12"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Interest rate: "
-                android:textColor="#000"
-                android:textSize="10sp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/coin_img"
-                app:layout_constraintTop_toBottomOf="@+id/current_value" />
-
-            <TextView
-                android:id="@+id/textView14"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="125%"
-                android:textColor="#000"
-                android:textSize="10sp"
-                app:layout_constraintBaseline_toBaselineOf="@+id/textView12"
-                app:layout_constraintStart_toEndOf="@+id/textView12" />
-
-            <Button
-                android:id="@+id/button"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_marginBottom="8dp"
-                android:layout_marginEnd="8dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
-                android:backgroundTint="#6f9ece"
-                android:text="Repay"
-                android:textSize="8sp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/repay_value"
-                app:layout_constraintTop_toTopOf="parent" />
-        </android.support.constraint.ConstraintLayout>
+            app:layout_constraintStart_toEndOf="@+id/current_value_tag" />
 
     </android.support.constraint.ConstraintLayout>
 

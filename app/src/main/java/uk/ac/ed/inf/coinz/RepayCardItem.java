@@ -9,14 +9,18 @@ public class RepayCardItem {
     private Timestamp mDateTaken;
     private Double mInterest;
     private Double mValue;
+    private int mCoinImg;
+    private String mId;
 
-    public RepayCardItem(String currency, Timestamp dateTaken, String email, Double interest, int days, Double value){
+    public RepayCardItem(String currency, Timestamp dateTaken, String email, Double interest, int days, Double value, int coinImg, String id){
         mEmail = email;
         mDays = days;
         mCurrency = currency;
         mDateTaken = dateTaken;
         mInterest = interest;
         mValue = value;
+        mCoinImg = coinImg;
+        mId = id;
     }
 
     public String getEmail() {
@@ -41,5 +45,13 @@ public class RepayCardItem {
 
     public Timestamp getDateTaken() {
         return mDateTaken;
+    }
+
+    public int getCoinImg() {
+        return mCoinImg;
+    }
+
+    public String getId() {
+        return mId;
     }
 }
