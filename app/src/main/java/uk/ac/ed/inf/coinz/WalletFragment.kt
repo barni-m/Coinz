@@ -308,7 +308,9 @@ class WalletFragment : Fragment() {
                                 val counterNHashMap = it.result?.data as java.util.HashMap<String, Any>
                                 val counterValue = counterNHashMap["n"] as Long
 
-                                if (currentCurrency != null && counterValue < 25) {
+                                if (currentCurrency != null
+                                        && ((counterValue < 25 && clickedcard.from == email)
+                                        || (counterValue >= 25 && clickedcard.from != email))) {
                                     addToBank(clickedcard.text2, currentCurrency!!,clickedcard.from)
                                     removeItem(position)
                                 }else{
@@ -316,8 +318,10 @@ class WalletFragment : Fragment() {
                                     alert.apply {
                                         setPositiveButton("OK",null)
                                         setCancelable(true)
-                                        setTitle("Transaction Limit")
-                                        setMessage("Sorry, you cannot add more than 25 coins to the bank within a day.")
+                                        setTitle("Transaction Denied")
+                                        setMessage("Sorry, you cannot add more than 25 collected coins to the bank within a day," +
+                                                " and you may only add coins received from others to the bank once you've" +
+                                                " deposited 25 collected coins")
                                         create().show()
                                     }
                                 }
@@ -339,8 +343,8 @@ class WalletFragment : Fragment() {
 
     private fun addToBank(amount: String, currency: String, from: String){
         val collectedCoinsRef = userDB.collection("wallet").document("todaysCollectedCoins")
-        collectedCoinsRef.get().addOnCompleteListener{
-            val mapOfCollectedCoins = it.result?.data as HashMap<String, HashMap<String,Any>>
+        collectedCoinsRef.get().addOnCompleteListener{ todayCollected ->
+            val mapOfCollectedCoins = todayCollected.result?.data as HashMap<String, HashMap<String,Any>>
             loop@ for ((id, coin) in mapOfCollectedCoins) {
                 if (currency in coin.keys){
                     val actualCoinValue = coin.get(currency)  as Double
@@ -364,7 +368,6 @@ class WalletFragment : Fragment() {
                                                 newCurrencyValue[currency] = actualCoinValue
                                                 bankCurrenciesPath.set(newCurrencyValue, SetOptions.merge())
                                             }
-
 
                                             updateCounter(bankPath)
                                             addIdToDeletedCoins(id)

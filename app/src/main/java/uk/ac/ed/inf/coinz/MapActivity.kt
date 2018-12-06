@@ -7,6 +7,7 @@ import android.content.SharedPreferences
 import android.location.Location
 import android.os.AsyncTask
 import android.os.Bundle
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.Toast
@@ -76,12 +77,11 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
     lateinit var  userDB: DocumentReference
 
     // Required proximity of marker
-    private var requiredMarkerDistance = 2500.0 // todo set back to 25m
+    private var requiredMarkerDistance = 25.0
 
     // Shared Prefs
-    private val preferencesFile = "RatesPrefsFile" // for storing preferences
-    private var settings: SharedPreferences? = null
-
+    private val preferencesFile = "PrefsFile" // for storing preferences
+    private var levelUp: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -108,8 +108,7 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
         }
 
 
-
-
+       // CoinMessageListener().realTimeUpdateListener(this)
 
 
         // Switch to Menu button:
@@ -256,6 +255,30 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
         mapView.onStart()
 
 
+        val settings= this?.getSharedPreferences(preferencesFile, Context.MODE_PRIVATE)
+        if (settings.contains("levelUp")){
+            levelUp = settings!!.getBoolean("levelUp", false)
+            if (levelUp){
+                requiredMarkerDistance = 50.0
+                val alert = AlertDialog.Builder(this)
+                alert.apply {
+                    setPositiveButton("Yay!",null)
+                    setCancelable(true)
+                    setTitle("Hidden Level Up")
+                    setMessage("You are now able to collect coins as far as 50 meters away with this device!")
+                    create().show()
+                    settings.edit().remove("levelUp").apply()
+                    val editor = settings.edit()
+                    editor?.putInt("coinDistanceLimit", 50)
+                    editor?.apply()
+
+                }
+            }
+        }
+        if(settings.contains("coinDistanceLimit")){
+            requiredMarkerDistance = settings.getInt("coinDistanceLimit", 25).toDouble()
+        }
+
 
     }
 
@@ -298,17 +321,19 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
         collectedCoinsRef.get().addOnCompleteListener{
            if (it.result!!.exists()) {
                val mapOfCollectedCoins = it.result?.data as HashMap<String, HashMap<String, Any>>
-               for ((id, coin) in mapOfCollectedCoins) {
+               loop@ for ((id, coin) in mapOfCollectedCoins) {
                    val coinDate: Date = coin.get("date") as Date
                    val formatter = SimpleDateFormat("yyyy/MM/dd")
                    val todayString = formatter.format(Date())
                    val todayDate = formatter.parse(todayString)
 
                    if (coinDate < todayDate) {
-                       val deleteCoin = HashMap<String, Any>()
+                       /*val deleteCoin = HashMap<String, Any>()
                        deleteCoin[id] = FieldValue.delete()
-                       collectedCoinsRef.update(deleteCoin)
+                       collectedCoinsRef.update(deleteCoin)*/
+                       collectedCoinsRef.delete()
                        userDB.collection("wallet").document("todaysCollectedAddedToBank").delete()
+                       break@loop
                    }
 
 
@@ -384,7 +409,7 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
         }
     }
 
-    inner class DownloadFileTask(private val caller: DownloadCompleteListener):
+    class DownloadFileTask(private val caller: DownloadCompleteListener):
             AsyncTask<String,Void,String>() {
 
         override fun doInBackground(vararg urls: String): String = try {

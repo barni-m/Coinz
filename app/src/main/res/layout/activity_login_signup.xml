@@ -11,12 +11,12 @@
 
     <ImageView
         android:id="@+id/logo"
-        android:layout_width="@dimen/coin_size"
-        android:layout_height="@dimen/coin_size"
+        android:layout_width="117dp"
+        android:layout_height="117dp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="50dp"
-        app:srcCompat="@drawable/coin_quid_large" />
+        app:srcCompat="@drawable/logo" />
 
     <TextView
         android:id="@+id/login_signup_title_view"

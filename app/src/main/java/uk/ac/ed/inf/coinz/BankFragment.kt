@@ -3,6 +3,7 @@ package uk.ac.ed.inf.coinz
 import android.animation.ObjectAnimator
 import android.animation.PropertyValuesHolder
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -52,10 +53,12 @@ class BankFragment: Fragment(), AdapterView.OnItemSelectedListener{
     private var val_PENY: Double = .0
     private var val_QUID: Double = .0
     private var val_SHIL: Double = .0
+    private var gold: Double = .0
 
     // Shared Prefs
-    private val preferencesFile = "RatesPrefsFile" // for storing preferences
+    private val preferencesFile = "PrefsFile" // for storing preferences
     private var settings: SharedPreferences? = null
+
 
     // Rates
     private  lateinit var  rates : JSONObject
@@ -93,6 +96,9 @@ class BankFragment: Fragment(), AdapterView.OnItemSelectedListener{
 
 
 
+
+
+
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -101,6 +107,19 @@ class BankFragment: Fragment(), AdapterView.OnItemSelectedListener{
         createLoansSubtree["exists"] = true
         userDB.collection("loans").document("loanAds").set(createLoansSubtree, SetOptions.merge()).addOnSuccessListener { _->
             showBalances()
+
+            total_gold_img.setOnClickListener {
+                if (gold >= 100000){
+                    val settings = activity?.getSharedPreferences(preferencesFile, Context.MODE_PRIVATE)
+                    val editor = settings?.edit()
+                    editor?.putBoolean("levelUp", true)
+                    editor?.apply()
+                    val intent = Intent(activity, MapActivity::class.java)
+                    startActivity(intent)
+
+                }
+            }
+
             userDB.collection("loans").document("loanAds").get().addOnSuccessListener{
                 showCoinsInRecycler(it)
 
@@ -163,8 +182,8 @@ class BankFragment: Fragment(), AdapterView.OnItemSelectedListener{
                     }
                 }
             }
-
-            total_value_gold.text = "%.0f".format(totalValueInGold())
+            gold = totalValueInGold()
+            total_value_gold.text = "%.0f".format(gold)
         }
 
     }

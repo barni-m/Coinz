@@ -65,7 +65,18 @@ class MessengerFragment: Fragment(){
         cardViewItemList = arrayListOf()
         cardViewCoinsForMessaging = arrayListOf()
         createListOfPayees()
-
+        userDB.collection("bank").document("numberOfCoinsAddedTodayToBank").get().addOnCompleteListener {
+            if (it.result!!.exists()){
+                val counter = it.result!!.data as HashMap<String,Int>
+                if (counter["n"] as Long >= 25.0){
+                    createListOfMessagableCoins()
+                }else{
+                    noSpareChange.visibility = View.VISIBLE
+                }
+            }else{
+                noSpareChange.visibility = View.VISIBLE
+            }
+        }
     }
 
     private fun setUpUser() {
@@ -123,6 +134,9 @@ class MessengerFragment: Fragment(){
             deleteLoanTaken[clickedCard.id] = FieldValue.delete()
             userDB.collection("loans").document("loansTaken").update(deleteLoanTaken)
             removeItemFromPayees(position)
+            if (cardViewItemList.isNullOrEmpty()){
+                noLoans.visibility = View.VISIBLE
+            }
         }
     }
 
@@ -146,8 +160,13 @@ class MessengerFragment: Fragment(){
 
                         }
                     }
-                    showPendingRepaymentsInRecycler()
-                    createListOfMessagableCoins()
+                    if (cardViewItemList.isNullOrEmpty()){
+                        noLoans.visibility = View.VISIBLE
+                    }else{
+                        showPendingRepaymentsInRecycler()
+                    }
+
+
                 }
 
     }
