@@ -8,6 +8,7 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreSettings
 
 class CoinMessageListener {
 
@@ -22,7 +23,7 @@ class CoinMessageListener {
 
 
     fun setUpUser() {
-        mAuth = FirebaseAuth.getInstance()
+       mAuth = FirebaseAuth.getInstance()
         currentUser = mAuth.currentUser
         email = currentUser?.email
         db = FirebaseFirestore.getInstance()
@@ -42,30 +43,38 @@ class CoinMessageListener {
                 if(isFirst){
                     isFirst = false
                 }else{
-                    val data = snapshot.data
-                    val id = data!!.keys.first()
-                    val coindetails = data[id] as HashMap<String,Any>
-                    if ("from" in coindetails.keys){
-                        val email_from = coindetails["from"]
-                        val alert = AlertDialog.Builder(context)
-                        alert.apply {
-                            setPositiveButton("OK",null)
-                            setCancelable(true)
-                            setTitle("New coin received")
-                            setMessage("$email_from sent you a coin. You can find it in your wallet" +
-                                    "\nThis coin can be placed in your bank even if you have reached" +
-                                    " your transaction limit of 25 coins a day!" +
-                                    " You may only place this coin in the bank once you've" +
-                                    " added 25 collected coins to the bank today.")
-                            create().show()
+                    val coinsRetrieved = snapshot.data as HashMap<String,HashMap<String,Any>>
+                    for ((coinid, coin) in coinsRetrieved){
+                        val coinDecriptionKeys = coin.keys
+                        if (coinDecriptionKeys.contains("from") && !coinDecriptionKeys.contains("alerted")) {
+
+                            // alert user about new received coin
+                            val fromEmail = coin["from"] as String
+                            val alert = AlertDialog.Builder(context)
+                            alert.apply {
+                                setPositiveButton("OK", null)
+                                setCancelable(true)
+                                setTitle("New coin received")
+                                setMessage("$fromEmail sent you a coin. You can find it in your wallet" +
+                                        "\nThis coin can be placed in your bank even if you have reached" +
+                                        " your transaction limit of 25 coins a day!" +
+                                        " You may only place this coin in the bank once you've" +
+                                        " added 25 collected coins to the bank today.")
+                                create().show()
+                            }
+                            // add alerted to coin hash-map for future reference
+                            coin["alerted"] = true
+                            walletReference.update(coinid, coin)
                         }
+                    }
+
                     }
 
                 }
 
             }
         }
-    }
+
 
     companion object {
         private const val COLLECTION_KEY = "wallet"

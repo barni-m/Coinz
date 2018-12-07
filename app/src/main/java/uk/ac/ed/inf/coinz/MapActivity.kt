@@ -1,9 +1,9 @@
+
 package uk.ac.ed.inf.coinz
 
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.location.Location
 import android.os.AsyncTask
 import android.os.Bundle
@@ -14,7 +14,9 @@ import android.widget.Toast
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.firestore.*
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.gson.JsonObject
 import com.mapbox.android.core.location.LocationEngine
 import com.mapbox.android.core.location.LocationEngineListener
@@ -22,8 +24,11 @@ import com.mapbox.android.core.location.LocationEnginePriority
 import com.mapbox.android.core.location.LocationEngineProvider
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
-import com.mapbox.geojson.*
+import com.mapbox.geojson.Feature
+import com.mapbox.geojson.FeatureCollection
+import com.mapbox.geojson.Point
 import com.mapbox.mapboxsdk.Mapbox
+import com.mapbox.mapboxsdk.annotations.IconFactory
 import com.mapbox.mapboxsdk.annotations.MarkerOptions
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
 import com.mapbox.mapboxsdk.geometry.LatLng
@@ -31,23 +36,22 @@ import com.mapbox.mapboxsdk.location.modes.CameraMode
 import com.mapbox.mapboxsdk.location.modes.RenderMode
 import com.mapbox.mapboxsdk.maps.MapView
 import com.mapbox.mapboxsdk.maps.MapboxMap
-import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
-import com.mapbox.mapboxsdk.annotations.IconFactory
+import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin
 import kotlinx.android.synthetic.main.activity_map.*
 import org.joda.time.DateTime
 import org.json.JSONObject
-
 import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.text.SimpleDateFormat
-import java.util.*
 import java.time.LocalDate
+import java.util.*
 import kotlin.collections.HashMap
 import kotlin.concurrent.schedule
 
+@Suppress("UNCHECKED_CAST")
 class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineListener {
 
     private val tag = "MapActivity"
@@ -61,7 +65,6 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
     private var mapUrlString: String = "http://homepages.inf.ed.ac.uk/stg/coinz/"
     private val fileName: String = "coinzmap.geojson"
     private lateinit var geoJsonCoinsString: String
-    private lateinit var  ratesJSONObject: JSONObject
 
     private var locationEngine: LocationEngine? = null
     private var locationLayerPlugin: LocationLayerPlugin? = null
@@ -77,7 +80,7 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
     lateinit var  userDB: DocumentReference
 
     // Required proximity of marker
-    private var requiredMarkerDistance = 25.0
+    private var requiredMarkerDistance = 25000.0
 
     // Shared Prefs
     private val preferencesFile = "PrefsFile" // for storing preferences
@@ -108,15 +111,15 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
         }
 
 
-       // CoinMessageListener().realTimeUpdateListener(this)
+
 
 
         // Switch to Menu button:
-        menu_button.setOnClickListener { it ->
+        menu_button.setOnClickListener {
             goToBottomNavigationActivity()
         }
         // in case of imprecise touch
-        menu_button_container.setOnClickListener { it ->
+        menu_button_container.setOnClickListener {
             goToBottomNavigationActivity()
         }
 
@@ -159,7 +162,7 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
 
 
                     val ratesJSONAsString=  JSONObject(geoJsonCoinsString).getString("rates")
-                    val settings = this@MapActivity?.getSharedPreferences(preferencesFile, Context.MODE_PRIVATE)
+                    val settings = this@MapActivity.getSharedPreferences(preferencesFile, Context.MODE_PRIVATE)
                     val editor = settings?.edit()
                     editor?.putString("ratesJSONAsString", ratesJSONAsString)
                     editor?.apply()
@@ -199,7 +202,7 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
                         if (locationEngine != null) {
                             // calculating distance to marker
                             val lastLocation = locationEngine!!.lastLocation
-                            val lastLocationLatLng: LatLng = LatLng(lastLocation.latitude, lastLocation.longitude)
+                            val lastLocationLatLng = LatLng(lastLocation.latitude, lastLocation.longitude)
                             val markerLatLng = marker.position
                             val distanceToMarker = lastLocationLatLng.distanceTo(markerLatLng)
                             // Show a toast with the distance to the selected marker
@@ -254,8 +257,9 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
         }
         mapView.onStart()
 
+        CoinMessageListener().realTimeUpdateListener(this)
 
-        val settings= this?.getSharedPreferences(preferencesFile, Context.MODE_PRIVATE)
+    /*    val settings= this.getSharedPreferences(preferencesFile, Context.MODE_PRIVATE)
         if (settings.contains("levelUp")){
             levelUp = settings!!.getBoolean("levelUp", false)
             if (levelUp){
@@ -277,7 +281,7 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
         }
         if(settings.contains("coinDistanceLimit")){
             requiredMarkerDistance = settings.getInt("coinDistanceLimit", 25).toDouble()
-        }
+        }*/ //todo
 
 
     }
@@ -306,7 +310,7 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
         idToCoinMap[id]=coin
 
 
-        val document= userDB.collection("wallet")
+        userDB.collection("wallet")
                 .document("todaysCollectedCoins").set(idToCoinMap, SetOptions.merge())
 
 
@@ -316,13 +320,14 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
     }
 
 
+    @SuppressLint("SimpleDateFormat")
     private fun deleteOldCoinsInWallet(){
         val collectedCoinsRef = userDB.collection("wallet").document("todaysCollectedCoins")
         collectedCoinsRef.get().addOnCompleteListener{
            if (it.result!!.exists()) {
                val mapOfCollectedCoins = it.result?.data as HashMap<String, HashMap<String, Any>>
-               loop@ for ((id, coin) in mapOfCollectedCoins) {
-                   val coinDate: Date = coin.get("date") as Date
+               loop@ for ((_, coin) in mapOfCollectedCoins) {
+                   val coinDate: Date = coin["date"] as Date
                    val formatter = SimpleDateFormat("yyyy/MM/dd")
                    val todayString = formatter.format(Date())
                    val todayDate = formatter.parse(todayString)
@@ -354,16 +359,15 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
     }
 
     private fun resetBankCoinCounter(){
-        val date = Timestamp(Date())
         val path = userDB.collection("bank").document("numberOfCoinsAddedTodayToBank")
         path.get().addOnCompleteListener {
             if (it.isSuccessful) {
-                val date = DateTime(Date()).toLocalDate()
+                val dateToday = DateTime(Date()).toLocalDate()
                 if (it.result!!.exists()) {
                     val counterNHashMap = it.result?.data as java.util.HashMap<String, Any>
                     val counterDate = DateTime(counterNHashMap["date"] as Date).toLocalDate()
 
-                    if(date > counterDate){
+                    if(dateToday > counterDate){
                         path.update("n",0)
                     }
                 }
@@ -393,7 +397,7 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
         if (day <= 9){
             dayString = "0" + dayString
         }
-        return mapUrlString + year + "/" + month + "/" + dayString + "/" + fileName
+        return "$mapUrlString$year/$month/$dayString/$fileName"
 
     }
 
@@ -426,8 +430,8 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
 
         @Throws(IOException::class)
         private fun downloadUrl(urlString: String) : InputStream {
-            var url = URL(urlString)
-            var conn = url.openConnection() as HttpURLConnection
+            val url = URL(urlString)
+            val conn = url.openConnection() as HttpURLConnection
             conn.readTimeout = 10000
             conn.connectTimeout = 15000
             conn.requestMethod = "GET"

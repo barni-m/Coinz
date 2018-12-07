@@ -23,7 +23,7 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 
-class MessengerFragment: Fragment(){
+class MessengerFragment : Fragment() {
 
     // user (Firebase):
     private lateinit var db: FirebaseFirestore
@@ -40,7 +40,7 @@ class MessengerFragment: Fragment(){
 
     private lateinit var mAdapterMessaging: MessageRecyclerAdapter
     private lateinit var cardViewCoinsForMessaging: ArrayList<CardViewItem>
-    private  lateinit var extraInfo: ArrayList<ExtraInfo>
+    private lateinit var extraInfo: ArrayList<HashMap<String,Any>>
 
     // All currencies
     private val DOLR = "DOLR"
@@ -49,13 +49,12 @@ class MessengerFragment: Fragment(){
     private val QUID = "QUID"
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_messenger, container,false)
+        return inflater.inflate(R.layout.fragment_messenger, container, false)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setUpUser()
-
 
 
     }
@@ -66,14 +65,14 @@ class MessengerFragment: Fragment(){
         cardViewCoinsForMessaging = arrayListOf()
         createListOfPayees()
         userDB.collection("bank").document("numberOfCoinsAddedTodayToBank").get().addOnCompleteListener {
-            if (it.result!!.exists()){
-                val counter = it.result!!.data as HashMap<String,Int>
-                if (counter["n"] as Long >= 25.0){
+            if (it.result!!.exists()) {
+                val counter = it.result!!.data as HashMap<String, Int>
+                if (counter["n"] as Long >= 25.0) {
                     createListOfMessagableCoins()
-                }else{
+                } else {
                     noSpareChange.visibility = View.VISIBLE
                 }
-            }else{
+            } else {
                 noSpareChange.visibility = View.VISIBLE
             }
         }
@@ -99,7 +98,7 @@ class MessengerFragment: Fragment(){
         setClickListenerOnRecyclerViewItemClick()
     }
 
-    private fun setClickListenerOnRecyclerViewItemClick(){
+    private fun setClickListenerOnRecyclerViewItemClick() {
         mAdapter.setOnItemClickListener { position ->
             val clickedCard = cardViewItemList.get(position)
             val currency = clickedCard.currency
@@ -107,62 +106,62 @@ class MessengerFragment: Fragment(){
             val repayReference = db.collection("users").document(repayTo)
                     .collection("bank").document("currencies")
             repayReference.get().addOnCompleteListener {
-                if(it.result!!.exists()){
-                    val currenciesMap = it.result!!.data as HashMap<String,Double>
-                    for ((bank_currency,balance) in currenciesMap){
-                        if (currency == bank_currency){
+                if (it.result!!.exists()) {
+                    val currenciesMap = it.result!!.data as HashMap<String, Double>
+                    for ((bank_currency, balance) in currenciesMap) {
+                        if (currency == bank_currency) {
                             val updatedBalance = balance + clickedCard.value
-                            repayReference.update(bank_currency,updatedBalance)
+                            repayReference.update(bank_currency, updatedBalance)
                         }
                     }
                 }
             }
             val currentUserBankRef = userDB.collection("bank").document("currencies")
             currentUserBankRef.get().addOnCompleteListener {
-                if(it.result!!.exists()){
-                    val currenciesMap = it.result!!.data as HashMap<String,Double>
-                    for ((bank_currency,balance) in currenciesMap){
-                        if (currency == bank_currency){
+                if (it.result!!.exists()) {
+                    val currenciesMap = it.result!!.data as HashMap<String, Double>
+                    for ((bank_currency, balance) in currenciesMap) {
+                        if (currency == bank_currency) {
                             val updatedBalance = balance - clickedCard.value
-                            currentUserBankRef.update(bank_currency,updatedBalance)
+                            currentUserBankRef.update(bank_currency, updatedBalance)
                         }
                     }
                 }
             }
 
-            val deleteLoanTaken = HashMap<String,Any>()
+            val deleteLoanTaken = HashMap<String, Any>()
             deleteLoanTaken[clickedCard.id] = FieldValue.delete()
             userDB.collection("loans").document("loansTaken").update(deleteLoanTaken)
             removeItemFromPayees(position)
-            if (cardViewItemList.isNullOrEmpty()){
+            if (cardViewItemList.isNullOrEmpty()) {
                 noLoans.visibility = View.VISIBLE
             }
         }
     }
 
-    private fun createListOfPayees(){
+    private fun createListOfPayees() {
 
         userDB.collection("loans").document("loansTaken").get()
-                .addOnSuccessListener {documentSnapshot ->
-                    if (documentSnapshot.exists()){
-                        for ((id,detailMap) in documentSnapshot.data as HashMap<String,HashMap<String,Any>>){
+                .addOnSuccessListener { documentSnapshot ->
+                    if (documentSnapshot.exists()) {
+                        for ((id, detailMap) in documentSnapshot.data as HashMap<String, HashMap<String, Any>>) {
 
-                                var item :RepayCardItem
-                                val currency = detailMap["currency"] as String
-                                val dateTaken = Timestamp(detailMap["dateTaken"] as Date)
-                                val email = detailMap["from"] as String
-                                val interest = detailMap["interest"] as Double
-                                val repayPeriod = (detailMap["repayPeriod"] as Long).toInt()
-                                val value = detailMap["value"] as Double
-                                val coinImg = getCoinImg(currency)
-                                item = RepayCardItem(currency,dateTaken,email,interest,repayPeriod,value,coinImg,id)
-                                cardViewItemList.add(item)
+                            var item: RepayCardItem
+                            val currency = detailMap["currency"] as String
+                            val dateTaken = Timestamp(detailMap["dateTaken"] as Date)
+                            val email = detailMap["from"] as String
+                            val interest = detailMap["interest"] as Double
+                            val repayPeriod = (detailMap["repayPeriod"] as Long).toInt()
+                            val value = detailMap["value"] as Double
+                            val coinImg = getCoinImg(currency)
+                            item = RepayCardItem(currency, dateTaken, email, interest, repayPeriod, value, coinImg, id)
+                            cardViewItemList.add(item)
 
                         }
                     }
-                    if (cardViewItemList.isNullOrEmpty()){
+                    if (cardViewItemList.isNullOrEmpty()) {
                         noLoans.visibility = View.VISIBLE
-                    }else{
+                    } else {
                         showPendingRepaymentsInRecycler()
                     }
 
@@ -171,14 +170,14 @@ class MessengerFragment: Fragment(){
 
     }
 
-    private fun getCoinImg(currency: String): Int = when (currency){
+    private fun getCoinImg(currency: String): Int = when (currency) {
         DOLR -> R.drawable.coin_dolr
         PENY -> R.drawable.coin_peny
         QUID -> R.drawable.coin_quid
         else -> R.drawable.coin_shil
     }
 
-    private fun removeItemFromPayees(position: Int){
+    private fun removeItemFromPayees(position: Int) {
         cardViewItemList.removeAt(position)
         mAdapter.notifyItemRemoved(position)
     }
@@ -194,33 +193,33 @@ class MessengerFragment: Fragment(){
         setClickListenerOnSendButton()
     }
 
-    private fun createListOfMessagableCoins(){
+    private fun createListOfMessagableCoins() {
 
         userDB.collection("wallet").document("todaysCollectedCoins").get()
                 .addOnSuccessListener {
                     extraInfo = arrayListOf()
-                    if(it.exists()){
-                        val hashMapOfCoins = it.data as HashMap<String,HashMap<String,Any>>
-                        for ((id,coinData) in hashMapOfCoins){
-                            val extras = ExtraInfo
-                            extras.id = id
-                            extras.date = Timestamp(coinData["date"] as Date)
+                    if (it.exists()) {
+                        val hashMapOfCoins = it.data as HashMap<String, HashMap<String, Any>>
+                        for ((id, coinData) in hashMapOfCoins) {
+                            val extras = HashMap<String,Any>()
+                            extras["id"] = id
+                            extras["date"] = Timestamp(coinData["date"] as Date)
                             extraInfo.add(extras)
                             val keys = coinData.keys
                             var currency: String = DOLR
                             var value: Double = 0.0
-                            for (key in keys){
-                                if (key in listOf<String>(DOLR,PENY,QUID,SHIL)){
+                            for (key in keys) {
+                                if (key in listOf<String>(DOLR, PENY, QUID, SHIL)) {
                                     currency = key
                                     value = coinData[key] as Double
                                 }
                             }
                             val coinImg = getCoinImg(currency)
                             var from = email!!
-                            if("from" in coinData.keys){
+                            if ("from" in coinData.keys) {
                                 from = coinData["from"] as String
                             }
-                            val cardViewItem =CardViewItem(coinImg,currency,"%.2f".format(value), from)
+                            val cardViewItem = CardViewItem(coinImg, currency, "%.2f".format(value), from)
                             cardViewCoinsForMessaging.add(cardViewItem)
                         }
                         showMessagableCoinsInRecycler()
@@ -229,35 +228,35 @@ class MessengerFragment: Fragment(){
                 }
     }
 
-    companion object ExtraInfo{
-        lateinit var id :String
-        lateinit var date: Timestamp
-    }
 
     private fun setClickListenerOnSendButton() {
         mAdapterMessaging.setOnItemClickListener { position ->
             val clickedCard = cardViewCoinsForMessaging.get(position)
-            val extras = extraInfo?.get(position)
+            val extras = extraInfo.get(position)
+            extraInfo.removeAt(position)
             val currency = clickedCard.text1
             val value = clickedCard.text2.toDouble()
-            var id = extras!!.id
-            val now = Timestamp(Date())
-
-            var coinInfo= HashMap<String,Any>()
-
-                val id_with_email = id + "_" + email
-                val coinToSend = hashMapOf<String,Any>(id_with_email to coinInfo)
-                coinInfo[currency] = value
-                coinInfo["date"] = Timestamp(Date())
-                if (email != null){
-                    coinInfo["from"] = email!!
+            val id = extras["id"] as String
 
 
+            val coinInfo = HashMap<String, Any>()
+            // adding email to id so no two coins have tha same ids
+            val idWithEmail = id + "_" + email
+            // a hashmap of the coin to be sent
+            val coinToSend = hashMapOf<String, Any>(idWithEmail to coinInfo)
+            coinInfo[currency] = value
+            coinInfo["date"] = Timestamp(Date())
+            // setting including email in sent coin
+            if (email != null) {
+                coinInfo["from"] = email!!
+
+                // getting the email from the input field
                 val toEmail = emailTo.text
-                if (toEmail.isEmpty()){
+                // alert user that no address was input if that's the case
+                if (toEmail.isEmpty()) {
                     val alert = AlertDialog.Builder(this.requireActivity())
                     alert.apply {
-                        setPositiveButton("OK",null)
+                        setPositiveButton("OK", null)
                         setCancelable(true)
                         setTitle("No email address")
                         setMessage("Please fill out the \"To\" field with another palyers email address.")
@@ -268,12 +267,20 @@ class MessengerFragment: Fragment(){
                             .collection("wallet").document("todaysCollectedCoins")
                     toRef.get().addOnCompleteListener {
                         if (it.result!!.exists()) {
+                            // send coin and deleting sender's coin instance
                             toRef.set(coinToSend, SetOptions.merge())
-                            val deleteMyCoin = hashMapOf<String,Any>(id to FieldValue.delete())
-                            userDB.collection("wallet").document("todaysCollectedCoins")
-                                    .update(deleteMyCoin)
+                            val deleteMyCoin = hashMapOf<String, Any>(id to FieldValue.delete())
+                            val myWallet = userDB.collection("wallet").document("todaysCollectedCoins")
+                            myWallet.update(deleteMyCoin)
+
+                            myWallet.parent.document("todaysCollectedAddedToBank").set(hashMapOf<String,Any>(id to true), SetOptions.merge())
                             removeItemFromSendableCoins(position)
                         } else {
+                            db.collection("users").document(toEmail.toString()).get().addOnCompleteListener {
+                                if (it.result!!.exists()){
+                                    toRef.set(coinToSend, SetOptions.merge())
+                                }
+                            }
                             val alert = AlertDialog.Builder(this.requireActivity())
                             alert.apply {
                                 setPositiveButton("OK", null)
@@ -291,7 +298,7 @@ class MessengerFragment: Fragment(){
         }
     }
 
-    private fun removeItemFromSendableCoins(position: Int){
+    private fun removeItemFromSendableCoins(position: Int) {
         cardViewCoinsForMessaging.removeAt(position)
         mAdapterMessaging.notifyItemRemoved(position)
     }
