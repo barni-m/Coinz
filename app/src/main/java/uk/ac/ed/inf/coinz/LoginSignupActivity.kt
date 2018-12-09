@@ -5,8 +5,6 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.widget.Toast
-import com.google.android.gms.tasks.OnCompleteListener
-import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -36,26 +34,10 @@ class LoginSignupActivity : AppCompatActivity() {
             val confirmEmail = emai_confirm_input_field.text.toString()
             val confirmPassword = password_confirm_input_field.text.toString()
             if ((email != "" && password != "")){
-                if (isLogin == false){
+                if (!isLogin){
                     if (email == confirmEmail && password == confirmPassword){
                         // Sign up if emails and passwords match
-                        mAuth.createUserWithEmailAndPassword(email, password)
-                                .addOnCompleteListener(this, OnCompleteListener<AuthResult> {  task ->
-                                    if (task.isSuccessful) {
-                                        // Sign in success, update UI with the signed-in user's information
-                                        // Add new user to database "users" (in Firestore)
-                                        registerNewUser(email)
-                                        val intent = Intent(this, MapActivity::class.java)
-                                        startActivity(intent)
-                                    }/*else{
-                                        // If sign in fails, display a message to the user.
-                                        Toast.makeText(this, "Authentication failed.",
-                                                Toast.LENGTH_SHORT).show()
-                                    }*/
-                                }).addOnFailureListener {
-                                    Toast.makeText(this, "${it.message}",
-                                            Toast.LENGTH_SHORT).show()
-                                }
+                        signUp(email, password)
                     }else{
                         if(email != confirmEmail){
                             // If emails don't match Toast
@@ -66,27 +48,10 @@ class LoginSignupActivity : AppCompatActivity() {
                             Toast.makeText(this, "The passwords don't match.",
                                     Toast.LENGTH_SHORT).show()
                         }
-
                     }
-
-
                 }else{
                     // Login
-                    mAuth.signInWithEmailAndPassword(email,password)
-                            .addOnCompleteListener(this, OnCompleteListener<AuthResult> { task ->
-                                if(task.isSuccessful){
-                                    // Sign in success, update UI with the signed-in user's information
-                                    val intent = Intent(this, MapActivity::class.java)
-                                    startActivity(intent)
-                                }/*else{
-                                    // If sign in fails, display a message to the user.
-                                    Toast.makeText(this, "Authentication failed.",
-                                            Toast.LENGTH_SHORT).show()
-                                }*/
-                            }).addOnFailureListener {
-                                Toast.makeText(this, "${it.message}",
-                                        Toast.LENGTH_SHORT).show()
-                            }
+                    login(email, password)
                 }
             }else{
                 Toast.makeText(this, "Email or password empty.",
@@ -95,18 +60,44 @@ class LoginSignupActivity : AppCompatActivity() {
 
         }
 
-
-        sign_up_link.setOnClickListener{view -> toggleFormLayout(view)}
-
-        //db = FirebaseFirestore.getInstance()
-
-        //mapOf<String, Objects>(email)
-
-
+        // if a new user wants to sign up switch to sign up view
+        sign_up_link.setOnClickListener{ toggleFormLayout() }
     }
 
+    // sign up user, add user to database and change to map activity
+    private fun signUp(email: String, password: String) {
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this) { task ->
+                    if (task.isSuccessful) {
+                        // Sign in success, update UI with the signed-in user's information
+                        // Add new user to database "users" (in Firestore)
+                        registerNewUser(email)
+                        val intent = Intent(this, MapActivity::class.java)
+                        startActivity(intent)
+                    }
+                }.addOnFailureListener {
+                    Toast.makeText(this, "${it.message}",
+                            Toast.LENGTH_SHORT).show()
+                }
+    }
 
-    private fun toggleFormLayout(view: View){
+    // login and change to map activity
+    private fun login(email: String, password: String) {
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this) { task ->
+                    if (task.isSuccessful) {
+                        // Sign in success, update UI with the signed-in user's information
+                        val intent = Intent(this, MapActivity::class.java)
+                        startActivity(intent)
+                    }
+                }.addOnFailureListener {
+                    Toast.makeText(this, "${it.message}",
+                            Toast.LENGTH_SHORT).show()
+                }
+    }
+
+    // user sign up/login toggle (hiding and showing Views + changing isLogin boolean)
+    private fun toggleFormLayout() {
         if (sign_up_link.text.toString() == "Sign up here!"){
             sign_up_link.text = getString(R.string.login_layout_link)
             no_account_question.visibility = View.GONE
@@ -128,7 +119,7 @@ class LoginSignupActivity : AppCompatActivity() {
     }
 
 
-
+    // register new user in database (Firebase)
     private fun registerNewUser(email: String) {
         val registered = HashMap<String,Any>()
         registered["registered"] = true

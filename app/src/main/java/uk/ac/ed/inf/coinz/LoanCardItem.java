@@ -1,5 +1,6 @@
 package uk.ac.ed.inf.coinz;
 
+// loan card object for loan recycler view
 public class LoanCardItem {
     private int mImageResource;
     private Double mVal;

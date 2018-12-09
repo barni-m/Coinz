@@ -2,6 +2,7 @@ package uk.ac.ed.inf.coinz;
 
 import com.google.firebase.Timestamp;
 
+//  loan card item object for loan repay recycler
 public class RepayCardItem {
     private String mEmail;
     private int mDays;

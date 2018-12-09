@@ -1,5 +1,6 @@
 package uk.ac.ed.inf.coinz;
 
+// Card view item object for recyclers (wallet and coin messaging recycler)
 public class CardViewItem {
     private int mImageResource;
     private String mText1;

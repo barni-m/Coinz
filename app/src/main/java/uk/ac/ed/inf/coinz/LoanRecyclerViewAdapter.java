@@ -1,5 +1,6 @@
 package uk.ac.ed.inf.coinz;
 
+import android.annotation.SuppressLint;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -10,31 +11,30 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
+// adapter for loan recycler (in bank)
 public class LoanRecyclerViewAdapter extends RecyclerView.Adapter<LoanRecyclerViewAdapter.LoanRecyclerViewHolder>  {
 
     private ArrayList<LoanCardItem> mItemList;
     private LoanRecyclerViewAdapter.OnItemClickListener mListener;
 
+    // interface for item click listener (implemented below)
     public interface OnItemClickListener{
-        //void onItemClick(int position);
         void  onDeleteClick(int position);
     }
-
     public void setOnItemClickListener(LoanRecyclerViewAdapter.OnItemClickListener listener){
         mListener = listener;
     }
 
-    public static class LoanRecyclerViewHolder extends RecyclerView.ViewHolder{
-        public ImageView mCurrencyImageview;
-        public TextView mTextValue;
-        public TextView mTextCurrency;
-        public TextView mTextInterestRate;
-        public TextView mTextRepayPeriod;
-        public ImageView mLoanImage;
+    // view holder with click listener overriding
+    static class LoanRecyclerViewHolder extends RecyclerView.ViewHolder{
+        ImageView mCurrencyImageview;
+        TextView mTextValue;
+        TextView mTextCurrency;
+        TextView mTextInterestRate;
+        TextView mTextRepayPeriod;
+        ImageView mLoanImage;
 
-
-
-        public LoanRecyclerViewHolder(View itemView, LoanRecyclerViewAdapter.OnItemClickListener listener) {
+        LoanRecyclerViewHolder(View itemView, LoanRecyclerViewAdapter.OnItemClickListener listener) {
             super(itemView);
 
             mCurrencyImageview = itemView.findViewById(R.id.card_img);
@@ -44,29 +44,12 @@ public class LoanRecyclerViewAdapter extends RecyclerView.Adapter<LoanRecyclerVi
             mTextRepayPeriod = itemView.findViewById(R.id.repay_period);
             mLoanImage = itemView.findViewById(R.id.loan_img);
 
-
-
-
-           /* itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (listener != null) {
-                        int position = getAdapterPosition();
-                        if (position != RecyclerView.NO_POSITION){
-                            listener.onItemClick(position);
-                        }
-                    }
-                }
-            });*/
-
-            mLoanImage.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (listener != null) {
-                        int position = getAdapterPosition();
-                        if (position != RecyclerView.NO_POSITION){
-                            listener.onDeleteClick(position);
-                        }
+            // return clicked card position (overridden in BankFragment.kt)
+            mLoanImage.setOnClickListener(view -> {
+                if (listener != null) {
+                    int position = getAdapterPosition();
+                    if (position != RecyclerView.NO_POSITION){
+                        listener.onDeleteClick(position);
                     }
                 }
             });
@@ -85,7 +68,8 @@ public class LoanRecyclerViewAdapter extends RecyclerView.Adapter<LoanRecyclerVi
         return new LoanRecyclerViewHolder(v,mListener);
     }
 
-
+    // creating the cards (associating the card object elements with the View objects in the layout)
+    @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull LoanRecyclerViewHolder holder, int position) {
         LoanCardItem currentItem = mItemList.get(position);

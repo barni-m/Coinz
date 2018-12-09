@@ -1,6 +1,5 @@
 package uk.ac.ed.inf.coinz;
 
-import android.opengl.Visibility;
 import android.support.annotation.NonNull;
 import android.support.constraint.Group;
 import android.support.v7.widget.RecyclerView;
@@ -12,21 +11,15 @@ import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.RecyclerViewHolder> {
     private ArrayList<CardViewItem> mItemList;
     public OnItemClickListener mListener;
-    // user (Firebase):
-    private FirebaseAuth mAuth;
-    private FirebaseUser currentUser;
     private String email;
 
     public interface OnItemClickListener{
-        //void onItemClick(int position);
         void  onDeleteClick(int position);
     }
 
@@ -35,12 +28,12 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     }
 
     public static class RecyclerViewHolder extends RecyclerView.ViewHolder{
-        public ImageView mImageview;
-        public TextView mTextView1;
-        public TextView mTextView2;
-        public ImageView mTransactionImage;
-        public TextView mFrom;
-        public Group mGroup;
+        ImageView mImageview;
+        TextView mTextView1;
+        TextView mTextView2;
+        ImageView mTransactionImage;
+        TextView mFrom;
+        Group mGroup;
 
         public RecyclerViewHolder(View itemView, OnItemClickListener listener) {
             super(itemView);
@@ -51,26 +44,12 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             mTransactionImage = itemView.findViewById(R.id.loan_img);
             mFrom = itemView.findViewById(R.id.from_email);
             mGroup = itemView.findViewById(R.id.from_group);
-           /* itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (listener != null) {
-                        int position = getAdapterPosition();
-                        if (position != RecyclerView.NO_POSITION){
-                            listener.onItemClick(position);
-                        }
-                    }
-                }
-            });*/
 
-            mTransactionImage.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (listener != null) {
-                        int position = getAdapterPosition();
-                        if (position != RecyclerView.NO_POSITION){
-                            listener.onDeleteClick(position);
-                        }
+            mTransactionImage.setOnClickListener(view -> {
+                if (listener != null) {
+                    int position = getAdapterPosition();
+                    if (position != RecyclerView.NO_POSITION){
+                        listener.onDeleteClick(position);
                     }
                 }
             });
@@ -87,13 +66,13 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     public RecyclerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         setUpUser();
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.card_view_coins, parent,false);
-        RecyclerViewHolder rvh = new RecyclerViewHolder(v,mListener);
-        return rvh;
+        return new RecyclerViewHolder(v,mListener);
     }
 
     public void setUpUser() {
-        mAuth = FirebaseAuth.getInstance();
-        currentUser = mAuth.getCurrentUser();
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        assert currentUser != null;
         email = currentUser.getEmail();
     }
 

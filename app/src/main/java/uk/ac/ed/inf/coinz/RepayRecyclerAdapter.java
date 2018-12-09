@@ -1,12 +1,12 @@
 package uk.ac.ed.inf.coinz;
 
+import android.annotation.SuppressLint;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -18,11 +18,11 @@ import org.joda.time.LocalDate;
 
 import java.util.ArrayList;
 
+// adapter for recycler showing the pending loan repayments
 public class RepayRecyclerAdapter extends RecyclerView.Adapter<RepayRecyclerAdapter.RepayRecyclerHolder> {
 
     private ArrayList<RepayCardItem> mItemList;
     private RepayRecyclerAdapter.OnItemClickListener mListener;
-    private int mExpandedPosition = -1;
 
 
     public interface OnItemClickListener{
@@ -33,17 +33,17 @@ public class RepayRecyclerAdapter extends RecyclerView.Adapter<RepayRecyclerAdap
         mListener = listener;
     }
 
-    public static class RepayRecyclerHolder extends RecyclerView.ViewHolder{
-        public TextView mEmailTextView;
-        public TextView mDaysTextView;
-        public TextView mRepayVal;
-        public TextView mInterestRate;
-        public ImageView mCoinImg;
-        public TextView mRepayCurrency;
-        public Button mRepayButton;
+    static class RepayRecyclerHolder extends RecyclerView.ViewHolder{
+        TextView mEmailTextView;
+        TextView mDaysTextView;
+        TextView mRepayVal;
+        TextView mInterestRate;
+        ImageView mCoinImg;
+        TextView mRepayCurrency;
+        Button mRepayButton;
 
 
-        public RepayRecyclerHolder(View itemView, RepayRecyclerAdapter.OnItemClickListener listener){
+        RepayRecyclerHolder(View itemView, RepayRecyclerAdapter.OnItemClickListener listener){
             super(itemView);
 
             mEmailTextView = itemView.findViewById(R.id.user_email);
@@ -56,14 +56,11 @@ public class RepayRecyclerAdapter extends RecyclerView.Adapter<RepayRecyclerAdap
 
 
 
-            mRepayButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (listener != null){
-                        int position = getAdapterPosition();
-                        if (position != RecyclerView.NO_POSITION){
-                            listener.onItemClick(position);
-                        }
+            mRepayButton.setOnClickListener(view -> {
+                if (listener != null){
+                    int position = getAdapterPosition();
+                    if (position != RecyclerView.NO_POSITION){
+                        listener.onItemClick(position);
                     }
                 }
             });
@@ -81,6 +78,7 @@ public class RepayRecyclerAdapter extends RecyclerView.Adapter<RepayRecyclerAdap
         return new RepayRecyclerHolder(v, mListener);
     }
 
+    @SuppressLint({"SetTextI18n", "DefaultLocale"})
     @Override
     public void onBindViewHolder(@NonNull RepayRecyclerHolder holder, int position) {
         RepayCardItem currentItem = mItemList.get(position);
@@ -106,7 +104,7 @@ public class RepayRecyclerAdapter extends RecyclerView.Adapter<RepayRecyclerAdap
         return mItemList.size();
     }
 
-    @NonNull
+    // returns number of days left till the repayment is due
     private int numberOfDaysLeft(int totalNoOfDays, Timestamp dateTaken){
         LocalDate dateTakenJoda = new LocalDate(new DateTime(dateTaken.toDate()));
         int numberOfDaysSince = Days.daysBetween(dateTakenJoda, new LocalDate()).getDays();
@@ -114,6 +112,7 @@ public class RepayRecyclerAdapter extends RecyclerView.Adapter<RepayRecyclerAdap
         return totalNoOfDays - numberOfDaysSince;
     }
 
+    // returns the amount to be repayed
     @NonNull
     private Double repayAmount(int noOfDaysLeft, int totalNoOfDays, Double originalVal, Double interestRate){
         return originalVal* Math.pow((interestRate + 1),totalNoOfDays-noOfDaysLeft);

@@ -30,8 +30,6 @@ import kotlin.collections.HashMap
 
 class WalletFragment : Fragment() {
 
-    private val TAG = "WalletFragment"
-
     // user (Firebase):
     private lateinit var db: FirebaseFirestore
     private lateinit var mAuth: FirebaseAuth
@@ -40,10 +38,10 @@ class WalletFragment : Fragment() {
     private var email: String? = null
 
     // user coins in wallet
-    private var coinsDOLR: ArrayList<HashMap<String,Any>> = arrayListOf<HashMap<String,Any>>()
-    private var coinsPENY: ArrayList<HashMap<String,Any>> = arrayListOf<HashMap<String,Any>>()
-    private var coinsSHIL: ArrayList<HashMap<String,Any>> = arrayListOf<HashMap<String,Any>>()
-    private var coinsQUID: ArrayList<HashMap<String,Any>> = arrayListOf<HashMap<String,Any>>()
+    private var coinsDOLR: ArrayList<HashMap<String,Any>> = arrayListOf()
+    private var coinsPENY: ArrayList<HashMap<String,Any>> = arrayListOf()
+    private var coinsSHIL: ArrayList<HashMap<String,Any>> = arrayListOf()
+    private var coinsQUID: ArrayList<HashMap<String,Any>> = arrayListOf()
 
 
 
@@ -53,12 +51,6 @@ class WalletFragment : Fragment() {
     private val preferencesFile = "WalletPrefsFile" // for storing preferences
     private var settings: SharedPreferences? = null
 
-
-    // All currencies
-    private val DOLR = "DOLR"
-    private val SHIL = "SHIL"
-    private val PENY = "PENY"
-    private val QUID = "QUID"
 
     // RecyclerView for collected coins
     private lateinit var mRecyclerViewItem: RecyclerView
@@ -70,28 +62,28 @@ class WalletFragment : Fragment() {
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        recycler_view_coins
-
         return inflater.inflate(R.layout.fragment_wallet, container, false)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        // initialise Firebase user
         setUpUser()
-        recycler_view_coins // todo delete these lines
+        // get the last selected currency from shared preferences and put it in local variable
         settings= activity?.getSharedPreferences(preferencesFile, Context.MODE_PRIVATE)
         currentCurrency = settings?.getString("currentCurrency", DOLR)
 
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        recycler_view_coins
+
+        // group coins to currencies and show the selected one in the recycler after getting the contents of the wallet
         val collectedCoinsRef = userDB.collection("wallet").document("todaysCollectedCoins")
         collectedCoinsRef.get().addOnCompleteListener { coins ->
             if(coins.result!!.exists()) {
-                separateValuesToCurrenies(coins.result?.data as HashMap<String, HashMap<String, Any>>)
+                separateValuesToCurrenies(coins.result?.data  as HashMap<String, HashMap<String, Any>>)
                 if (currentCurrency != null) {
                     showCoinsInRecycler(currentCurrency!!)
                 }
@@ -102,9 +94,7 @@ class WalletFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        recycler_view_coins
-        val scaleNewY = PropertyValuesHolder.ofFloat(View.SCALE_Y,1f,1.3f)
-        val scaleNewX = PropertyValuesHolder.ofFloat(View.SCALE_X,1f,1.3f)
+        // set up initially selecte currency
         var currentCoinView: View? = null
         when (currentCurrency) {
             DOLR -> currentCoinView = coin_dolr
@@ -115,17 +105,22 @@ class WalletFragment : Fragment() {
         coin_currency_name.text = currentCurrency
 
 
+        // display initially selected coins
         if (currentCoinView != null) {
             val a = currentCoinView.id
             placeholder_coin.setContentId(a)
         }
-
-
+        // make initiyally selected coin grow in size
+        val scaleNewY = PropertyValuesHolder.ofFloat(View.SCALE_Y,1f,1.3f)
+        val scaleNewX = PropertyValuesHolder.ofFloat(View.SCALE_X,1f,1.3f)
         ObjectAnimator.ofPropertyValuesHolder(currentCoinView,scaleNewX,scaleNewY).apply {
             interpolator = AnticipateInterpolator()
         }.setDuration(0).start()
 
 
+        /* set click listener for each coin:
+            swap selected currency in UI
+            change currently selected  currency variable*/
         coin_shil.setOnClickListener {
             swapView(it)
             currentCurrency = SHIL
@@ -147,13 +142,9 @@ class WalletFragment : Fragment() {
             showCoinsInRecycler(PENY)
         }
 
-
-
-
-
     }
 
-
+    // initialise Firebase and get user's personal database (userDB) as well as their email (email)
     private fun setUpUser() {
         mAuth = FirebaseAuth.getInstance()
         currentUser = mAuth.currentUser
@@ -163,28 +154,29 @@ class WalletFragment : Fragment() {
             userDB = db.collection("users").document(email!!)
     }
 
-
+    // create lists of the available coin values
     private fun separateValuesToCurrenies(coins: HashMap<String, HashMap<String, Any>>) {
         coinsDOLR.clear()
         coinsPENY.clear()
         coinsQUID.clear()
         coinsSHIL.clear()
 
-        for((id,coin)in coins){
-            var currency: String = ""
-            var coin_value: Double = 0.0
-            var from_email: String = email!!
-            val coin_detail_keys = coin.keys
-            if ("from" in coin_detail_keys){
-                from_email = coin["from"] as String
+        for((_,coin)in coins){
+            var currency = ""
+            var coinValue = 0.0
+            var fromEmail: String = email!!
+            val coinDetailKeys = coin.keys
+            if ("from" in coinDetailKeys){
+                fromEmail = coin["from"] as String
             }
-            for (detail_key in coin_detail_keys){
-                if (detail_key in listOf<String>(DOLR,PENY,SHIL,QUID)){
+            for (detail_key in coinDetailKeys){
+                if (detail_key in listOf(DOLR,PENY,SHIL,QUID)){
                     currency = detail_key
-                    coin_value = coin[detail_key] as Double
+                    coinValue = coin[detail_key] as Double
                 }
             }
-            val valWithMail = hashMapOf<String,Any>("value" to coin_value, "from" to from_email)
+
+            val valWithMail = hashMapOf("value" to coinValue, "from" to fromEmail)
 
             when (currency){
                 DOLR -> coinsDOLR.add(valWithMail)
@@ -198,30 +190,27 @@ class WalletFragment : Fragment() {
 
 
     private fun swapView(v: View){
-
+        // previously selected currency
         val oldCoin=placeholder_coin.content
-
+        // animation of the shrinkage of the no longer selected currency's coin
         val scaleY = PropertyValuesHolder.ofFloat(View.SCALE_Y,1.3f,1f)
         val scaleX = PropertyValuesHolder.ofFloat(View.SCALE_X,1.3f,1f)
-
-
         ObjectAnimator.ofPropertyValuesHolder(oldCoin,scaleX,scaleY).apply {
             interpolator = AnticipateInterpolator()
         }.start()
 
-
+        // replace currently selected coin
         TransitionManager.beginDelayedTransition(constraint_layout_wallet)
         placeholder_coin.setContentId(v.id)
 
-
+        // animate coin growh after click
         val scaleNewY = PropertyValuesHolder.ofFloat(View.SCALE_Y,0.7f,1.3f)
         val scaleNewX = PropertyValuesHolder.ofFloat(View.SCALE_X,0.7f,1.3f)
-
         ObjectAnimator.ofPropertyValuesHolder(v,scaleNewX,scaleNewY).apply {
             interpolator = AnticipateInterpolator()
         }.start()
 
-
+        // show the selected currency in the Textview coin_currency_name
         when (v) {
             coin_dolr -> coin_currency_name.text = DOLR
             coin_shil -> coin_currency_name.text = SHIL
@@ -230,30 +219,17 @@ class WalletFragment : Fragment() {
 
         }
 
+        // animate the fade in of the currency's name
         val alpha = PropertyValuesHolder.ofFloat(View.ALPHA,0f,1f)
-
         ObjectAnimator.ofPropertyValuesHolder(coin_currency_name,alpha).apply {
             interpolator = AnticipateInterpolator()
         }.start()
-
-        val alphaShadow = PropertyValuesHolder.ofFloat(View.ALPHA,0f,1f)
-
-        ObjectAnimator.ofPropertyValuesHolder(coin_currency_name,alpha).apply {
-            interpolator = AnticipateInterpolator()
-        }.start()
-
-    }
-
-    private fun swapViewNoAnimation(v: View){
-        TransitionManager.beginDelayedTransition(constraint_layout_wallet)
-        placeholder_coin.setContentId(v.id)
     }
 
 
-
+    // show the selected currency's collected/received coins in recycler
     private fun showCoinsInRecycler(currency: String) {
-
-        cardViewItemList = arrayListOf<CardViewItem>()
+        cardViewItemList = arrayListOf()
         when (currency) {
             DOLR -> {
                 cardViewItemList = createCardList(coinsDOLR, R.drawable.coin_dolr, currency)
@@ -276,47 +252,50 @@ class WalletFragment : Fragment() {
 
 
         }
+        // put selected coins in the recycler
         mRecyclerViewItem = recycler_view_coins
-        //mRecyclerViewItem.setHasFixedSize(true)
         mLayoutManager = LinearLayoutManager(activity)
         mAdapter = RecyclerViewAdapter(cardViewItemList)
         mRecyclerViewItem.layoutManager = mLayoutManager
         mRecyclerViewItem.adapter = mAdapter
         setClickListenerOnRecyclerViewItemClick()
-
-
     }
 
+    // Show or hide the text stating no coins are available
     private fun noCoinsTextToggle(hasNoCoins: Boolean){
         if (hasNoCoins){
             no_coin_of_selected_currency_text_view.visibility = View.VISIBLE
         }else{
-            //TODO add to landscape
             no_coin_of_selected_currency_text_view.visibility = View.GONE
         }
-
     }
 
+    //Click listener for bankcard icon. Adds the clicked  card's coin to bank if allowed.
     private fun setClickListenerOnRecyclerViewItemClick() {
         mAdapter.setOnItemClickListener { position ->
-            //cardViewItemList.get(index = position)
-            val clickedcard = cardViewItemList.get(position)
+            // get the selected coin from the card view objects containing the coins
+            val clickedcard = cardViewItemList[position]
+            // retrieve the counter (counts the number of coins added to the bank on the current day)
             userDB.collection("bank").document("numberOfCoinsAddedTodayToBank").get()
                     .addOnCompleteListener {
                         if (it.isSuccessful) {
+                            // check if counter exists
                             if (it.result!!.exists()) {
                                 val counterNHashMap = it.result?.data as java.util.HashMap<String, Any>
                                 val counterValue = counterNHashMap["n"] as Long
-
                                 if (currentCurrency != null
+                                        //  check if counter is less than the limit if the card was collected by current user
                                         && ((counterValue < 25 && clickedcard.from == email)
-                                        || (counterValue >= 25 && clickedcard.from != email))) {
-                                    addToBank(clickedcard.text2, currentCurrency!!,clickedcard.from)
+                                                // check if counter is greater tha or equal to 25 if it was received from another user
+                                                || (counterValue >= 25 && clickedcard.from != email))) {
+                                    // add to bank
+                                    addToBank(clickedcard.text2, currentCurrency!!, clickedcard.from)
                                     removeItem(position)
-                                }else{
+                                } else {
+                                    // alert user: Denied Transaction
                                     val alert = AlertDialog.Builder(this.requireActivity())
                                     alert.apply {
-                                        setPositiveButton("OK",null)
+                                        setPositiveButton("OK", null)
                                         setCancelable(true)
                                         setTitle("Transaction Denied")
                                         setMessage("Sorry, you cannot add more than 25 collected coins to the bank within a day," +
@@ -326,7 +305,9 @@ class WalletFragment : Fragment() {
                                     }
                                 }
                             } else {
+                                // if it doesn't exist it means that no coins have been collected this day
                                 if (currentCurrency != null) {
+                                    // thus we add coin to bank and remove the card from the recycler view
                                     addToBank(clickedcard.text2, currentCurrency!!, clickedcard.from)
                                     removeItem(position)
                                 }
@@ -336,19 +317,25 @@ class WalletFragment : Fragment() {
         }
     }
 
+    // remove card associated with coin
     private fun removeItem(position: Int){
         cardViewItemList.removeAt(position)
         mAdapter.notifyItemRemoved(position)
     }
-
+    // add coin to bank
+    @Suppress("UNCHECKED_CAST")
     private fun addToBank(amount: String, currency: String, from: String){
         val collectedCoinsRef = userDB.collection("wallet").document("todaysCollectedCoins")
         collectedCoinsRef.get().addOnCompleteListener{ todayCollected ->
+            // retrieve the coins collected today so they can be checked and removed
             val mapOfCollectedCoins = todayCollected.result?.data as HashMap<String, HashMap<String,Any>>
             loop@ for ((id, coin) in mapOfCollectedCoins) {
                 if (currency in coin.keys){
-                    val actualCoinValue = coin.get(currency)  as Double
+                    // the value of the coin without rounding
+                    val actualCoinValue = coin[currency] as Double
+                    // recreate rounding for comparison purposes
                     val actualValRoundedString: String = "%.2f".format(actualCoinValue)
+                    // remove coin from wallet and add to bank then update counter
                     if (actualValRoundedString == amount){
                         val bankPath = userDB.collection("bank")
                         val bankCurrenciesPath = bankPath.document("currencies")
@@ -357,22 +344,28 @@ class WalletFragment : Fragment() {
                                 .addOnCompleteListener {
                                     if (it.isSuccessful){
                                         var balance: Double
-                                        if (it.getResult()!!.exists()){
+                                        if (it.result!!.exists()){
                                             val currencyValuesInBank = it.result?.data as HashMap
                                             if (currencyValuesInBank[currency] != null){
                                                 balance = currencyValuesInBank[currency] as Double
                                                 balance += actualCoinValue
+                                                // update the bank balance if the wanted currency exists
                                                 bankCurrenciesPath.update(currency,balance)
                                             }else{
+                                                // create new instance of currency in the bank with the
+                                                // current coin's value as the balance
                                                 val newCurrencyValue=  HashMap<String,Any>()
                                                 newCurrencyValue[currency] = actualCoinValue
                                                 bankCurrenciesPath.set(newCurrencyValue, SetOptions.merge())
                                             }
-
+                                            // update the counter, add coin to the list of coins added to bank
+                                            // today so they can be retrieved so they won't who up
+                                            // on map
                                             updateCounter(bankPath)
                                             addIdToDeletedCoins(id)
                                             deleteCoinFromWalletFragmentList(actualCoinValue, currency,from)
                                         }else{
+                                            // if bank doesn't yet exist create it and add the new balace
                                             val newCurrencyValue=  HashMap<String,Any>()
                                             newCurrencyValue[currency]= actualCoinValue
                                             bankCurrenciesPath.set(newCurrencyValue)
@@ -380,7 +373,8 @@ class WalletFragment : Fragment() {
                                             addIdToDeletedCoins(id)
                                         }
                                     }else{
-                                        Log.d(TAG, "No such document.")
+                                        // if Firestore couldn't be reached
+                                        Log.d(TAG, "Couldn't reach firebase.")
                                     }
 
                                 }
@@ -393,13 +387,12 @@ class WalletFragment : Fragment() {
 
                 }
             }
-            //TODO check why counter goes to 26
-
         }.addOnFailureListener {
-            Toast.makeText(activity,"ERROR: Failed to delete coin.", Toast.LENGTH_LONG).show()
+            Toast.makeText(activity,"ERROR: Failed to add coin to bank.", Toast.LENGTH_LONG).show()
         }
     }
 
+    // update the counter counting the number of coins added to the bank today
     private fun updateCounter(bankPath: CollectionReference) {
         val counterPath = bankPath.document("numberOfCoinsAddedTodayToBank")
         counterPath.get().addOnCompleteListener {
@@ -407,12 +400,15 @@ class WalletFragment : Fragment() {
                 var n: Long
                 val date = Timestamp(Date())
                 if (it.result!!.exists()) {
+                    // add 1 to counter value
                     val counterNHashMap = it.result?.data as HashMap<String, Any>
                     n = counterNHashMap["n"] as Long
                     n += 1
                     counterPath.update("n", n)
+                    // record the date of the counter update
                     counterPath.update("date",date)
                 } else {
+                    // if no coins were added to bank today then create counter and set it to 1
                     val newCounter = HashMap<String, Any>()
                     newCounter["n"] = 1
                     newCounter["date"] = date
@@ -422,14 +418,16 @@ class WalletFragment : Fragment() {
         }
     }
 
+    // add the currently moved coin's id to list of coins added to bank for reference
     private fun addIdToDeletedCoins(id: String){
         val coinId = HashMap<String, Any>()
         coinId[id] = true
         userDB.collection("wallet").document("todaysCollectedAddedToBank").set(coinId, SetOptions.merge())
     }
 
+    // delete the coin value from the list that's storing currency-wise coin values
     private fun deleteCoinFromWalletFragmentList(actualCoinValue: Double, currency: String,from: String){
-        var valWithEmail = HashMap<String,Any>()
+        val valWithEmail = HashMap<String,Any>()
         valWithEmail["value"] = actualCoinValue
         valWithEmail["from"] = from
         when (currency) {
@@ -439,31 +437,33 @@ class WalletFragment : Fragment() {
             PENY -> coinsPENY.remove(valWithEmail)
 
         }
-
     }
 
-
+    //  create the list of card objects with coins
     private fun createCardList(coinsSelected: ArrayList<HashMap<String,Any>>, imageCoin: Int, currency: String): ArrayList<CardViewItem> {
-        val cardViewItemList: ArrayList<CardViewItem> = arrayListOf<CardViewItem>()
+        val cardViewItemList: ArrayList<CardViewItem> = arrayListOf()
         for (coin in coinsSelected)
             cardViewItemList.add(CardViewItem(imageCoin, currency, "%.2f".format(coin["value"] as Double),coin["from"] as String))
         return cardViewItemList
     }
 
-
     override fun onStop() {
         super.onStop()
-
+        // save currently selected coin to shared preferences so on next start
+        // it's still the one selected
         val settings = activity?.getSharedPreferences(preferencesFile, Context.MODE_PRIVATE)
         val editor = settings?.edit()
         editor?.putString("currentCurrency", currentCurrency)
         editor?.apply()
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-
-
+    companion object {
+        private const val TAG = "WalletFragment"
+        // All currencies
+        private const val DOLR = "DOLR"
+        private const val SHIL = "SHIL"
+        private const val PENY = "PENY"
+        private const val QUID = "QUID"
     }
 }
 
