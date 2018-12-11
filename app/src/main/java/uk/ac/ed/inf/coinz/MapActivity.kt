@@ -7,6 +7,7 @@ import android.content.Intent
 import android.location.Location
 import android.os.AsyncTask
 import android.os.Bundle
+import android.support.annotation.VisibleForTesting
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
@@ -79,11 +80,13 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
     private lateinit var  userDB: DocumentReference
 
     // Required proximity of marker
-    private var requiredMarkerDistance = 25000.0
+    private var requiredMarkerDistance = 25.0
 
     // Shared Prefs
     private val preferencesFile = "PrefsFile" // for storing preferences
     private var levelUp: Boolean = false
+
+    private var loggedIn: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -93,6 +96,10 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
         mAuth = FirebaseAuth.getInstance()
         // Initialising User
         currentUser = mAuth.currentUser
+        if (currentUser != null){
+            loggedIn = true
+        }
+
         // Initialising User Database
         db = FirebaseFirestore.getInstance()
         email = currentUser?.email
@@ -313,6 +320,7 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
     // switching to the login/sign-up activity
     private fun updateUIIfNoUserLoggedIn(){
         val intent = Intent(this, LoginSignupActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(intent)
     }
 
@@ -567,6 +575,10 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
         super.finish()
         overridePendingTransition(R.anim.slide_in_left,R.anim.slide_out_right)
     }
+
+    // variable for testing (SignUpTest.java & LoginTest.java)
+    @VisibleForTesting
+    fun getLoggedIn() = loggedIn
 
 
 }
