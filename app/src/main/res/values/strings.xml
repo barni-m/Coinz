@@ -44,7 +44,7 @@
     <string name="no_coins_collected_of_selected_currency">No coins in wallet of selected currency.</string>
     <string name="coinzbank">CoinzBank</string>
     <string name="log_out">Log Out</string>
-    <string name="coinz_messenger">Coinz Messenger</string>
+    <string name="coinz_messenger">Messenger</string>
     <string name="no_spare_change_in_wallet_string_resource">No Spare Change in Wallet \n(Spare change are the coins left after  25 coins\n have been added to the bank  in a day.)</string>
 
     <string-array name="loan_lend">

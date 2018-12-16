@@ -5,9 +5,11 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.location.Location
+import android.net.ConnectivityManager
 import android.os.AsyncTask
 import android.os.Bundle
 import android.support.annotation.VisibleForTesting
+import android.support.design.widget.Snackbar
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
@@ -127,9 +129,17 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
         }
 
 
-        // Downloading coins and setting up map with coins:
-        mapUrlString = createTodaysLink()
-        geoJsonCoinsString = DownloadFileTask(DownloadCompleteRunner).execute(mapUrlString).get()
+        val connectivityManager : ConnectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetworkInfo = connectivityManager.activeNetworkInfo
+        if (activeNetworkInfo != null && activeNetworkInfo.isConnected) {
+            // Downloading coins and setting up map with coins:
+            mapUrlString = createTodaysLink()
+            geoJsonCoinsString = DownloadFileTask(DownloadCompleteRunner).execute(mapUrlString).get()
+        }else{
+            Snackbar.make(mapMainLayout, "Please connect to a network!", Snackbar.LENGTH_INDEFINITE).show()
+        }
+
+
 
         Mapbox.getInstance(applicationContext, getString(R.string.access_token))
         mapView = findViewById(R.id.mapView)
@@ -143,8 +153,11 @@ class MapActivity : AppCompatActivity(), PermissionsListener, LocationEngineList
 
             // Make location info available:
             enableLocation()
-            // create markers and set on click listeners
-            showAvailableCoinsOnMapAndSetOnMarkerClickFunctions(mapboxMap)
+
+            if (activeNetworkInfo != null && activeNetworkInfo.isConnected) {
+                // create markers and set on click listeners
+                showAvailableCoinsOnMapAndSetOnMarkerClickFunctions(mapboxMap)
+            }else Snackbar.make(mapMainLayout, "Please connect to a network!", Snackbar.LENGTH_INDEFINITE).show()
         }
     }
 

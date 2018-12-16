@@ -178,10 +178,10 @@ public class LoginTest {
             e.printStackTrace();
         }
 
-        boolean loggedIn = mActivityTestRule.getActivity().getLoggedIn();
-        Assert.assertTrue("Logged in is:", loggedIn);
+
 
         new ResetFirebase().resetFirebase();
+        new LogOutTest().logOutTest();
 
 
     }

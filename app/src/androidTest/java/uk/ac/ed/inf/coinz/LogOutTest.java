@@ -2,9 +2,10 @@ package uk.ac.ed.inf.coinz;
 
 
 import android.support.test.espresso.ViewInteraction;
+import android.support.test.filters.LargeTest;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
-import android.test.suitebuilder.annotation.LargeTest;
+
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
@@ -35,18 +36,14 @@ public class LogOutTest {
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
         // https://google.github.io/android-testing-support-library/docs/espresso/idling-resource/index.html
-        try {
-            Thread.sleep(3231000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+
 
         ViewInteraction appCompatButton = onView(
                 allOf(withId(R.id.menu_button),
                         childAtPosition(
                                 allOf(withId(R.id.menu_button_container),
                                         childAtPosition(
-                                                withId(R.id.coordinatorLayout),
+                                                withId(R.id.mapMainLayout),
                                                 2)),
                                 0),
                         isDisplayed()));
@@ -72,7 +69,7 @@ public class LogOutTest {
         appCompatTextView.perform(click());
 
 
-        new LoginTest().loginTest();
+
 
     }
 

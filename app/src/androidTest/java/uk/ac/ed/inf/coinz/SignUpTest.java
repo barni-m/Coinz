@@ -41,11 +41,20 @@ public class SignUpTest {
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
         // https://google.github.io/android-testing-support-library/docs/espresso/idling-resource/index.html
+
+
         try {
-            Thread.sleep(1000);
+            Thread.sleep(2000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+
+        if(mActivityTestRule.getActivity().getLoggedIn()){
+            new LogOutTest().logOutTest();
+            new ResetFirebase().resetFirebase();
+        }
+
 
         ViewInteraction appCompatButton = onView(
                 allOf(withId(R.id.sign_up_link), withText("Sign up here!"),
@@ -356,12 +365,14 @@ public class SignUpTest {
         Assert.assertTrue("Logged in is:", loggedIn);
 
         try {
-            Thread.sleep(5501);
+            Thread.sleep(4501);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
         new LogOutTest().logOutTest();
+        new LoginTest().loginTest();
+
     }
 
 

@@ -1,6 +1,9 @@
 package uk.ac.ed.inf.coinz
 
+import android.content.Context
+import android.net.ConnectivityManager
 import android.os.Bundle
+import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.LinearLayoutManager
@@ -51,6 +54,8 @@ class MessengerFragment : Fragment() {
         private const val QUID = "QUID"
     }
 
+
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_messenger, container, false)
     }
@@ -67,20 +72,26 @@ class MessengerFragment : Fragment() {
         cardViewItemList = arrayListOf()
         cardViewCoinsForMessaging = arrayListOf()
         createListOfPayees()
-        // check if user has spare change and depending on that update UI
-        userDB.collection("bank").document("numberOfCoinsAddedTodayToBank").get().addOnCompleteListener {
-            if (it.result!!.exists() && it.result != null) {
-                val counter = it.result!!.data as HashMap<String, Int>
-                if (counter["n"]!! >= 25) {
-                    // create spare changer recycler with spare change
-                    createListOfMessagableCoins()
+        // check for network conncetion before accessing the network
+        val connectivityManager = activity?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetworkInfo = connectivityManager.activeNetworkInfo
+        if (activeNetworkInfo != null && activeNetworkInfo.isConnected) {
+            // check if user has spare change and depending on that update UI
+            userDB.collection("bank").document("numberOfCoinsAddedTodayToBank").get().addOnCompleteListener {
+
+                if (it.result!!.exists() && it.result != null) {
+                    val counter = it.result!!.data as HashMap<String, Int>
+                    if (counter["n"]!! >= 25) {
+                        // create spare changer recycler with spare change
+                        createListOfMessagableCoins()
+                    } else {
+                        noSpareChange.visibility = View.VISIBLE
+                    }
                 } else {
                     noSpareChange.visibility = View.VISIBLE
                 }
-            } else {
-                noSpareChange.visibility = View.VISIBLE
             }
-        }
+        }else Snackbar.make(messenger_layout, "Please connect to a network!", Snackbar.LENGTH_LONG).show()
     }
 
     // set up user (FirebaseAuth & Firestore)

@@ -23,18 +23,15 @@ class ResetFirebase {
             userDB = db.collection("users").document(email!!)
     }
 
-    fun deleteTestUser(){
+    private fun deleteTestUser(){
         currentUser?.delete()
     }
 
-    fun deleteTestUserDatabase(){
-        userDB.delete()
-    }
+
 
     fun resetFirebase(){
         userSetup()
         deleteTestUser()
-        deleteTestUserDatabase()
     }
 
 
