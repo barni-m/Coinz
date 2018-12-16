@@ -22,7 +22,6 @@ import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.action.ViewActions.closeSoftKeyboard;
 import static android.support.test.espresso.action.ViewActions.pressImeActionButton;
 import static android.support.test.espresso.action.ViewActions.replaceText;
-import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
@@ -182,15 +181,7 @@ public class WalletFragmentTest {
                         isDisplayed()));
         appCompatImageView.perform(click());
 
-        ViewInteraction textView = onView(
-                allOf(withId(R.id.coin_currency_name), withText("DOLR"),
-                        childAtPosition(
-                                allOf(withId(R.id.constraint_layout_wallet),
-                                        childAtPosition(
-                                                withId(R.id.fragment_container),
-                                                0)),
-                                7),
-                        isDisplayed()));
+
         try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
@@ -209,15 +200,7 @@ public class WalletFragmentTest {
                         isDisplayed()));
         appCompatImageView2.perform(click());
 
-        ViewInteraction textView2 = onView(
-                allOf(withId(R.id.coin_currency_name), withText("QUID"),
-                        childAtPosition(
-                                allOf(withId(R.id.constraint_layout_wallet),
-                                        childAtPosition(
-                                                withId(R.id.fragment_container),
-                                                0)),
-                                7),
-                        isDisplayed()));
+
         try {
             Thread.sleep(700);
         } catch (InterruptedException e) {
@@ -273,15 +256,7 @@ public class WalletFragmentTest {
                         isDisplayed()));
         bottomNavigationItemView2.perform(click());
 
-        ViewInteraction textView3 = onView(
-                allOf(withId(R.id.coin_currency_name), withText("PENY"),
-                        childAtPosition(
-                                allOf(withId(R.id.constraint_layout_wallet),
-                                        childAtPosition(
-                                                withId(R.id.fragment_container),
-                                                0)),
-                                7),
-                        isDisplayed()));
+
         try {
             Thread.sleep(700);
         } catch (InterruptedException e) {
